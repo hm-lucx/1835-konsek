@@ -5,6 +5,7 @@ import asyncio
 import dataclasses
 import time
 from collections.abc import AsyncIterator
+from typing import cast
 
 import pytest
 import pytest_asyncio
@@ -145,9 +146,9 @@ class TestLegalActions:
         self, service: GameService
     ) -> None:
         game_id = await service.create_game(3)
-        templates = await service.get_legal_actions(game_id, "Player 1")
-        names = {t["type"] for t in templates}
-        assert "BuyStartItem" in names
+        result = await service.get_legal_actions(game_id, "Player 1")
+        actions = cast("list[dict[str, object]]", result["actions"])
+        assert "buy_start_item" in {a["type"] for a in actions}
 
     async def test_pass_action_round_trips_through_service(self, service: GameService) -> None:
         game_id = await service.create_game(3)

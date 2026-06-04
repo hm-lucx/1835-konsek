@@ -97,6 +97,20 @@ def _build_router(app: FastAPI) -> APIRouter:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return LogResponse(events=events)  # type: ignore[arg-type]
 
+    @router.get("/games/{game_id}/view")
+    async def get_view(game_id: int) -> dict[str, object]:
+        try:
+            return await service().get_view(game_id)
+        except GameNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.get("/games/{game_id}/legal_actions")
+    async def get_legal_actions(game_id: int, player_id: str) -> dict[str, object]:
+        try:
+            return await service().get_legal_actions(game_id, player_id)
+        except GameNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
     @router.websocket("/ws/games/{game_id}")
     async def game_ws(websocket: WebSocket, game_id: int) -> None:
         mgr = manager()

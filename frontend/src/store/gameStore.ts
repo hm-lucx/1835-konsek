@@ -1,0 +1,76 @@
+// WebSocket-driven live store (Zustand). The server is the single source of
+// truth: on every `state_delta` we refetch the view + legal actions. No
+// optimistic updates.
+import { create } from 'zustand'
+
+import { getLegalActions, getView, submitAction } from '../api/client'
+import type { Action, GameView, LegalActionsResponse } from '../api/types'
+import { connectGameSocket } from '../api/websocket'
+
+interface GameStore {
+  gameId: number | null
+  playerId: string
+  view: GameView | null
+  legalActions: LegalActionsResponse | null
+  socket: WebSocket | null
+  error: string | null
+
+  connect: (gameId: number, playerId: string) => Promise<void>
+  disconnect: () => void
+  refresh: () => Promise<void>
+  submit: (action: Action) => Promise<void>
+}
+
+export const useGameStore = create<GameStore>((set, get) => ({
+  gameId: null,
+  playerId: 'Player 1',
+  view: null,
+  legalActions: null,
+  socket: null,
+  error: null,
+
+  connect: async (gameId, playerId) => {
+    get().disconnect()
+    set({ gameId, playerId, error: null })
+    await get().refresh()
+    const socket = connectGameSocket(gameId, () => {
+      void get().refresh()
+    })
+    set({ socket })
+  },
+
+  disconnect: () => {
+    const { socket } = get()
+    if (socket) {
+      socket.close()
+      set({ socket: null })
+    }
+  },
+
+  refresh: async () => {
+    const { gameId, playerId } = get()
+    if (gameId === null) return
+    try {
+      const [view, legalActions] = await Promise.all([
+        getView(gameId),
+        getLegalActions(gameId, playerId),
+      ])
+      set({ view, legalActions, error: null })
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) })
+    }
+  },
+
+  submit: async (action) => {
+    const { gameId, playerId, view } = get()
+    if (gameId === null || view === null) return
+    try {
+      await submitAction(gameId, playerId, view.sequence, action)
+      // The broadcast will trigger refresh(); refresh immediately too so the
+      // acting client updates without waiting for the round-trip frame.
+      await get().refresh()
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) })
+    }
+  },
+}))
