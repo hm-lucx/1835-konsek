@@ -31,7 +31,9 @@ class GameState:
     company_cash: dict[str, int]  # company_id → treasury
 
     # --- FSM ---
-    game_phase: int  # 1–6, advances when a higher-tier loco is first bought
+    # Legacy "highest locomotive tier purchased" (1–10).  NOT the coloured
+    # phase; kept for Phase-4 compatibility.  See ``colored_phase`` below.
+    game_phase: int
     game_loop_phase: GameLoopPhase
     or_phase: ORPhase | None  # None when not in OR
     active_company_id: str | None  # company currently running its OR turn
@@ -70,6 +72,27 @@ class GameState:
     player_certificates: dict[str, int] = field(default_factory=dict)
 
     # ------------------------------------------------------------------ #
+    # Phase 6 – Operating-round (OR) state (all defaulted for back compat)#
+    # ------------------------------------------------------------------ #
+
+    # Coloured phase: 1=gelb, 2=grün, 3=braun (rule 5.2).  Drives tile colours
+    # and the number of ORs between two ARs.
+    colored_phase: int = 1
+    # Active number of ORs per OR-set (between two ARs) – rule 5.2.
+    ors_per_set: int = 1
+    # OR count that takes effect from the *next* AR onward ("ab der nächsten AR").
+    pending_ors_per_set: int = 1
+    # Canonical train ids whose first copy has been bought (phase-trigger memo).
+    trains_first_bought: frozenset[str] = field(default_factory=frozenset)
+    # Preußen state machine (rules 4, 5.5.4.14).
+    preussen_can_open: bool = False  # set by first 4-Lok
+    preussen_must_open: bool = False  # set by first 4+4-Lok (rule 4.6)
+    preussen_opened: bool = False
+    # Per-company counters for the *current* OR turn (rules 5.4.1, 5.5.2).
+    tiles_laid_this_turn: dict[str, int] = field(default_factory=dict)
+    stations_built_this_turn: dict[str, int] = field(default_factory=dict)
+
+    # ------------------------------------------------------------------ #
     # Factories                                                            #
     # ------------------------------------------------------------------ #
 
@@ -91,7 +114,12 @@ class GameState:
             current_player_index=0,
             cash_per_player={p: capital for p in player_names},
             bank_balance=bank,
-            available_trains={1: 9, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4},
+            # Full roster keyed by integer tier (rule Promotionstabellen):
+            # 1:"2"=9, 2:"3"=4, 3:"4"=3, 4:"5"=2, 5:"6"=2, 6:"6+6"=4,
+            # 7:"2+2"=4, 8:"3+3"=3, 9:"4+4"=1, 10:"5+5"=1.
+            available_trains={
+                1: 9, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4, 7: 4, 8: 3, 9: 1, 10: 1
+            },
             company_trains={},
             company_cash={},
             game_phase=1,
@@ -110,6 +138,16 @@ class GameState:
             ar_sold_companies={p: () for p in player_names},
             companies_launched_this_ar=(),
             player_certificates={p: 0 for p in player_names},
+            # Phase 6 fields
+            colored_phase=1,
+            ors_per_set=1,
+            pending_ors_per_set=1,
+            trains_first_bought=frozenset(),
+            preussen_can_open=False,
+            preussen_must_open=False,
+            preussen_opened=False,
+            tiles_laid_this_turn={},
+            stations_built_this_turn={},
         )
 
     # ------------------------------------------------------------------ #
