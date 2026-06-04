@@ -91,7 +91,7 @@ class GameState:
             current_player_index=0,
             cash_per_player={p: capital for p in player_names},
             bank_balance=bank,
-            available_trains={1: 9, 2: 8, 3: 6, 4: 5, 5: 3, 6: 2},
+            available_trains={1: 9, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4},
             company_trains={},
             company_cash={},
             game_phase=1,

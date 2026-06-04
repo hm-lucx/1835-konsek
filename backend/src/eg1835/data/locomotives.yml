@@ -1,47 +1,51 @@
 # 1835 Konsek Locomotives Data
-# Locomotive progression with price, count, and scrap triggers
-# Total count must sum to 33
+# Locomotive tiers with corrected prices and counts (rule Promotionstabellen).
+# Tier mapping: 1=2-Lok, 2=3-Lok, 3=4-Lok, 4=5-Lok, 5=6-Lok, 6=6+6-Lok
+# NOTE: the "+" variants (2+2, 3+3, 4+4, 5+5) are not yet modeled as separate
+#       tiers; they are tracked as a follow-up task.
 locomotives:
   - tier: 1
     name: "2-locomotive"
-    price: 120
+    price: 80
     count: 9
     scrap_trigger: null
-    description: "Starting locomotives, all available initially"
-  
+    description: "Starting locomotives, all available initially (9 in the game)"
+
   - tier: 2
     name: "3-locomotive"
-    price: 200
-    count: 8
+    price: 180
+    count: 4
     scrap_trigger: null
-    description: "Three-space locomotive"
-  
+    description: "Three-space locomotive (4 in the game)"
+
   - tier: 3
     name: "4-locomotive"
-    price: 300
-    count: 6
-    scrap_trigger: null
-    description: "Four-space locomotive"
-  
+    price: 360
+    count: 3
+    scrap_trigger: 1
+    description: "Four-space locomotive; purchasing the first one scraps all 2-Loks (rule 5.5.4.14)"
+
   - tier: 4
     name: "5-locomotive"
-    price: 400
-    count: 5
-    scrap_trigger: 3
-    description: "Five-space locomotive, scraps 3-locomotives"
-  
+    price: 500
+    count: 2
+    scrap_trigger: null
+    description: "Five-space locomotive (2 in the game)"
+
   - tier: 5
     name: "6-locomotive"
-    price: 500
-    count: 3
-    scrap_trigger: 4
-    description: "Six-space locomotive, scraps 4-locomotives"
-  
-  - tier: 6
-    name: "6+6-locomotive"
     price: 600
     count: 2
-    scrap_trigger: 5
-    description: "Two 6-space locomotives, scraps 5-locomotives"
+    scrap_trigger: 2
+    description: "Six-space locomotive; purchasing the first one scraps all 3-Loks (rule 5.5.4.14)"
 
-# Total locomotive count: 9 + 8 + 6 + 5 + 3 + 2 = 33
+  - tier: 6
+    name: "6+6-locomotive"
+    price: 720
+    count: 4
+    scrap_trigger: null
+    description: "Dual six-space locomotive (4 in the game)"
+
+# Modelled total locomotive count: 9 + 4 + 3 + 2 + 2 + 4 = 24
+# Missing from model: 2+2 (4), 3+3 (3), 4+4 (1), 5+5 (1) = 9 "+"-variant locos
+# Full game total: 33

@@ -229,7 +229,7 @@ def _check_company_launch(state: GameState, company_id: str) -> GameState:
     if state.total_sold(company_id) < _LAUNCH_THRESHOLD:
         return state
 
-    # Capital = par price × shares already in player hands (2.7.6)
+    # Capital = par price × shares already in player hands (2.7.5)
     par = state.share_prices.get(company_id, 100)
     shares_in_hands = sum(
         sh.get(company_id, 0) for sh in state.player_shares.values()
@@ -243,6 +243,7 @@ def _check_company_launch(state: GameState, company_id: str) -> GameState:
     return dataclasses.replace(
         state,
         company_cash=new_company_cash,
+        bank_balance=state.bank_balance - capital,  # bank pays capital (rule 2.7.5)
         company_status=new_status,
         companies_launched_this_ar=new_launched,
     )
@@ -330,15 +331,16 @@ class BuyStartItem:
             new_certs.get(self.player_id, 0) + 1 + len(item.bonus_shares)
         )
 
-        # When the packet empties BY and SA go to the Aktienkurstafel (rule 2.5).
+        # When the packet empties BY and SA go to the Aktienkurstafel (rule 2.5.2).
+        # Par prices from aktiengesellschaften.yml: BY=92 M, SA=88 M.
         packet_empty = all(len(row) == 0 for row in new_rows)
         new_unsold = dict(state.unsold_shares)
         new_prices = dict(state.share_prices)
         new_status = dict(state.company_status)
         if packet_empty:
-            for ag in ("BY", "SA"):
-                new_unsold[ag] = 100  # all 100% sitting in Nichtverkaufte Aktien
-                new_prices[ag] = 100  # par price on price board
+            for ag, par in (("BY", 92), ("SA", 88)):
+                new_unsold[ag] = 100  # all 100% in Nichtverkaufte Aktien
+                new_prices[ag] = par
                 new_status[ag] = "inactive"
 
         new_state = dataclasses.replace(

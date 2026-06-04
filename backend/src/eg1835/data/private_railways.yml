@@ -1,38 +1,41 @@
 # 1835 Konsek Private Railways
-# 6 private railways with their properties
+# 6 private railways with corrected names and income (rules 3.1, Promotionstabellen).
+# Blue railways (NF, OB, PF) deliver one free Bayern share at purchase.
+# Red railway (LD) delivers the Sachsen director certificate at purchase.
+# Black railways (BS=Braunschweig, HA=Hannover) are converted to Preussen shares later.
 private_railways:
   - id: "NF"
-    name: "Nord-Flugel"
+    name: "Nürnberg-Fürth"
     purchase_price: 100
-    income: 10
-    description: "Northern regional railway"
-  
+    income: 5
+    description: "Blue private railway; delivers 1 Bayern share on purchase (rule 3.1)"
+
   - id: "LD"
-    name: "Leipzig-Dresdner"
+    name: "Leipzig-Dresdner Bahn"
     purchase_price: 100
-    income: 10
-    description: "Leipzig-Dresden connection"
-  
+    income: 20
+    description: "Red private railway; delivers Sachsen director certificate on purchase (rule 3.1.3.4)"
+
   - id: "BS"
-    name: "Berlin-Stettiner"
+    name: "Braunschweigische Bahn"
     purchase_price: 120
-    income: 15
-    description: "Berlin-Stettin connection"
-  
+    income: 25
+    description: "Black private railway; converted to 10%% Preussen share when Preussen opens (rule 3.1.3.5)"
+
   - id: "HA"
-    name: "Hamburg-Altonaer"
+    name: "Hannoversche Bahn"
     purchase_price: 120
-    income: 15
-    description: "Hamburg-Altona regional"
-  
+    income: 30
+    description: "Black private railway; converted to 10%% Preussen share when Preussen opens (rule 3.1.3.5)"
+
   - id: "OB"
-    name: "Oldenburg-Bremen"
+    name: "Ostbayerische Bahn"
     purchase_price: 140
-    income: 20
-    description: "Oldenburg-Bremen connection"
-  
+    income: 10
+    description: "Blue private railway; delivers 1 Bayern share on purchase (rule 3.1.3.2)"
+
   - id: "PF"
-    name: "Pfalzbahn"
+    name: "Pfalzbahnen"
     purchase_price: 140
-    income: 20
-    description: "Palatinate regional railway"
+    income: 15
+    description: "Blue private railway; delivers 1 Bayern share on purchase (rule 3.1.3.3)"

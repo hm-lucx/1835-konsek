@@ -25,7 +25,8 @@ class TestGameDataLoading:
         locomotives = loader.load_locomotives()
         assert len(locomotives) > 0
         total_count = sum(loco.count for loco in locomotives)
-        assert total_count == 33
+        # 24 modelled: 9+4+3+2+2+4 (+ variants 2+2/3+3/4+4/5+5 = 9 locos not yet modelled)
+        assert total_count == 24
         assert all(loco.price > 0 for loco in locomotives)
 
     def test_private_railways_load(self, loader: GameDataLoader) -> None:

@@ -48,7 +48,7 @@ def _or_state(or_phase: ORPhase = ORPhase.BUILD) -> GameState:
         or_phase=or_phase,
         active_company_id="BY",
         company_cash={"BY": 10_000},  # effectively unlimited funds
-        available_trains={1: 9, 2: 8, 3: 6, 4: 5, 5: 3, 6: 2},
+        available_trains={1: 9, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4},
     )
 
 
@@ -129,7 +129,7 @@ class TestValidateImpliesApplySafe:
     def test_buy_train_validate_fails_no_stock(self) -> None:
         state = dataclasses.replace(
             _or_state(ORPhase.BUY_TRAIN),
-            available_trains={1: 0, 2: 8, 3: 6, 4: 5, 5: 3, 6: 2},
+            available_trains={1: 0, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4},
         )
         action = BuyTrainFromBank(player_id="Player 1", company_id="BY", tier=1)
         assert isinstance(action.validate(state), Err)
@@ -251,42 +251,44 @@ class TestPhaseChangeOnLokoPurchase:
         state = BuyTrainFromBank(player_id="Player 1", company_id="BY", tier=2).apply(state)
         assert state.game_phase == 2  # already in phase 2
 
-    def test_phase4_purchase_scraps_tier2_trains(self) -> None:
-        """Buying tier-4 (5-loco) scraps all tier-2 (3-locos) on the board."""
+    def test_tier3_purchase_scraps_tier1_trains(self) -> None:
+        """Buying the first tier-3 (4-Lok) scraps all tier-1 (2-Loks) – rule 5.5.4.14."""
         state = self._buy_train_state(
-            game_phase=3, BY=[2, 3], SA=[2, 2]  # companies own tier-2 and tier-3 trains
+            game_phase=2, BY=[1, 2], SA=[1, 2]  # companies own tier-1 and tier-2 trains
         )
-        state = BuyTrainFromBank(player_id="Player 1", company_id="BY", tier=4).apply(state)
-        assert state.game_phase == 4
-        # All tier-2 trains removed from every company.
-        assert 2 not in state.company_trains.get("BY", [])
-        assert 2 not in state.company_trains.get("SA", [])
-        # Tier-3 trains are untouched.
-        assert 3 in state.company_trains.get("BY", [])
+        state = BuyTrainFromBank(player_id="Player 1", company_id="BY", tier=3).apply(state)
+        assert state.game_phase == 3
+        # All tier-1 trains removed from every company.
+        assert 1 not in state.company_trains.get("BY", [])
+        assert 1 not in state.company_trains.get("SA", [])
+        # Tier-2 trains are untouched.
+        assert 2 in state.company_trains.get("BY", [])
 
-    def test_phase5_purchase_scraps_tier3_trains(self) -> None:
-        """Buying tier-5 (6-loco) scraps all tier-3 (4-locos)."""
-        state = self._buy_train_state(game_phase=4, BY=[3, 4], SA=[3])
+    def test_tier5_purchase_scraps_tier2_trains(self) -> None:
+        """Buying the first tier-5 (6-Lok) scraps all tier-2 (3-Loks) – rule 5.5.4.14."""
+        state = self._buy_train_state(game_phase=4, BY=[2, 4], SA=[2])
         state = BuyTrainFromBank(player_id="Player 1", company_id="BY", tier=5).apply(state)
         assert state.game_phase == 5
-        assert 3 not in state.company_trains.get("BY", [])
-        assert 3 not in state.company_trains.get("SA", [])
+        assert 2 not in state.company_trains.get("BY", [])
+        assert 2 not in state.company_trains.get("SA", [])
+        # Tier-4 trains are untouched.
         assert 4 in state.company_trains.get("BY", [])
 
     def test_multiple_purchases_trigger_multiple_phase_changes(self) -> None:
         """Successive purchases by different companies each advance the phase."""
-        state = self._buy_train_state(game_phase=3, BY=[2, 3], SA=[3])
+        state = self._buy_train_state(game_phase=1, BY=[1, 2], SA=[1, 2])
 
-        # Company BY buys tier-4 → phase 4, tier-2 scrapped.
-        state = BuyTrainFromBank(player_id="Player 1", company_id="BY", tier=4).apply(state)
-        assert state.game_phase == 4
-        assert 2 not in state.company_trains.get("BY", [])
+        # First buy: tier-3 (4-Lok) → phase 3, tier-1 (2-Loks) scrapped.
+        state = BuyTrainFromBank(player_id="Player 1", company_id="BY", tier=3).apply(state)
+        assert state.game_phase == 3
+        assert 1 not in state.company_trains.get("BY", [])
+        assert 1 not in state.company_trains.get("SA", [])
 
-        # Company SA buys tier-5 → phase 5, tier-3 scrapped.
+        # Second buy: tier-5 (6-Lok) → phase 5, tier-2 (3-Loks) scrapped.
         state = BuyTrainFromBank(player_id="Player 2", company_id="SA", tier=5).apply(state)
         assert state.game_phase == 5
-        assert 3 not in state.company_trains.get("SA", [])
-        assert 3 not in state.company_trains.get("BY", [])
+        assert 2 not in state.company_trains.get("SA", [])
+        assert 2 not in state.company_trains.get("BY", [])
 
 
 # ---------------------------------------------------------------------------
