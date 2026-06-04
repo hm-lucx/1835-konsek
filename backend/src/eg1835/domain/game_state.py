@@ -93,6 +93,33 @@ class GameState:
     stations_built_this_turn: dict[str, int] = field(default_factory=dict)
 
     # ------------------------------------------------------------------ #
+    # Phase 7 – Special cases (all defaulted for backward compat)         #
+    # ------------------------------------------------------------------ #
+
+    # Index of the wooden-locomotive holder / start player (rules 1, 5.5.4.13).
+    start_player_index: int = 0
+    # private-railway id → owner player_id (NF, LD, BS, HA, OB, PF) – rule 3.1.
+    private_owners: dict[str, str] = field(default_factory=dict)
+    # Private railways removed from play (rule 3.1.3 close triggers, 3rd phase).
+    closed_privates: frozenset[str] = field(default_factory=frozenset)
+    # Named special fields already built – OB's two fields + Mannheim/Ludwigshafen
+    # (rules 3.1.3.2, 3.1.3.3, 5.5.2.10).  Board geometry is deferred; callers
+    # pass the field id.
+    built_fields: frozenset[str] = field(default_factory=frozenset)
+    # Whether Baden has placed its home station in M/L (rule 5.5.2.10).
+    baden_home_chosen: bool = False
+    # Companies that have already operated in the *current* OR (rule 4.5 double-
+    # use protection for Preußen).
+    companies_operated_this_or: frozenset[str] = field(default_factory=frozenset)
+    # True for the current OR if Preußen was opened *after* BP already operated
+    # and must therefore pause this OR (rule 4.5).
+    preussen_paused_this_or: bool = False
+    # Players who went bankrupt and left the game (rule 5.5.4.13).
+    bankrupt_players: frozenset[str] = field(default_factory=frozenset)
+    # company_id → outstanding bank loan that forces saving until repaid (5.5.4.13).
+    company_debt: dict[str, int] = field(default_factory=dict)
+
+    # ------------------------------------------------------------------ #
     # Factories                                                            #
     # ------------------------------------------------------------------ #
 
@@ -148,6 +175,16 @@ class GameState:
             preussen_opened=False,
             tiles_laid_this_turn={},
             stations_built_this_turn={},
+            # Phase 7 fields
+            start_player_index=0,
+            private_owners={},
+            closed_privates=frozenset(),
+            built_fields=frozenset(),
+            baden_home_chosen=False,
+            companies_operated_this_or=frozenset(),
+            preussen_paused_this_or=False,
+            bankrupt_players=frozenset(),
+            company_debt={},
         )
 
     # ------------------------------------------------------------------ #
