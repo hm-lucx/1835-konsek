@@ -1,0 +1,74 @@
+# 1835 Konsek Aktiengesellschaften (Stock Companies)
+# 8 major German railway companies
+aktiengesellschaften:
+  - id: "BY"
+    name: "Bayern"
+    abbreviation: "BY"
+    home_city: "München"
+    par_price: 100
+    share_count: 10
+    token_color: "blue"
+    description: "Bavarian railway company"
+  
+  - id: "SA"
+    name: "Sachsen"
+    abbreviation: "SA"
+    home_city: "Leipzig"
+    par_price: 100
+    share_count: 10
+    token_color: "green"
+    description: "Saxon railway company"
+  
+  - id: "BA"
+    name: "Baden"
+    abbreviation: "BA"
+    home_city: "Karlsruhe"
+    par_price: 100
+    share_count: 10
+    token_color: "red"
+    description: "Baden railway company"
+  
+  - id: "WÜ"
+    name: "Württemberg"
+    abbreviation: "WÜ"
+    home_city: "Stuttgart"
+    par_price: 100
+    share_count: 10
+    token_color: "yellow"
+    description: "Württemberg railway company"
+  
+  - id: "HE"
+    name: "Hessen"
+    abbreviation: "HE"
+    home_city: "Frankfurt"
+    par_price: 100
+    share_count: 10
+    token_color: "orange"
+    description: "Hessian railway company"
+  
+  - id: "MS"
+    name: "Mecklenburg-Strelitz"
+    abbreviation: "MS"
+    home_city: "Neustrelitz"
+    par_price: 100
+    share_count: 10
+    token_color: "purple"
+    description: "Mecklenburg-Strelitz railway company"
+  
+  - id: "OL"
+    name: "Oldenburg"
+    abbreviation: "OL"
+    home_city: "Oldenburg"
+    par_price: 100
+    share_count: 10
+    token_color: "brown"
+    description: "Oldenburg railway company"
+  
+  - id: "PR"
+    name: "Preußen"
+    abbreviation: "PR"
+    home_city: "Berlin"
+    par_price: 100
+    share_count: 10
+    token_color: "black"
+    description: "Prussian railway company"

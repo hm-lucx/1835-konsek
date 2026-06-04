@@ -1,0 +1,38 @@
+# 1835 Konsek Private Railways
+# 6 private railways with their properties
+private_railways:
+  - id: "NF"
+    name: "Nord-Flugel"
+    purchase_price: 100
+    income: 10
+    description: "Northern regional railway"
+  
+  - id: "LD"
+    name: "Leipzig-Dresdner"
+    purchase_price: 100
+    income: 10
+    description: "Leipzig-Dresden connection"
+  
+  - id: "BS"
+    name: "Berlin-Stettiner"
+    purchase_price: 120
+    income: 15
+    description: "Berlin-Stettin connection"
+  
+  - id: "HA"
+    name: "Hamburg-Altonaer"
+    purchase_price: 120
+    income: 15
+    description: "Hamburg-Altona regional"
+  
+  - id: "OB"
+    name: "Oldenburg-Bremen"
+    purchase_price: 140
+    income: 20
+    description: "Oldenburg-Bremen connection"
+  
+  - id: "PF"
+    name: "Pfalzbahn"
+    purchase_price: 140
+    income: 20
+    description: "Palatinate regional railway"
