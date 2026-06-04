@@ -6,6 +6,9 @@ import yaml
 
 from .models import (
     Aktiengesellschaft,
+    GameBoard,
+    HexCoordinate,
+    HexPosition,
     Locomotive,
     PlayerBoard,
     PrivateRailroad,
@@ -13,6 +16,7 @@ from .models import (
     Tile,
     VorpreussischeGesellschaft,
 )
+from .tile_system import TileSystem
 
 
 class GameDataLoader:
@@ -76,6 +80,32 @@ class GameDataLoader:
             PlayerBoard(**board) for board in data.get("player_boards", [])
         ]
 
+    def load_board(self) -> GameBoard:
+        """Load game board with hex positions."""
+        data = self._load_yaml("board.yml")
+        board_data = data.get("board", {})
+        width = board_data.get("width", 14)
+        height = board_data.get("height", 10)
+
+        positions: dict[str, HexPosition] = {}
+        for pos_data in board_data.get("positions", []):
+            q = pos_data.get("q", 0)
+            r = pos_data.get("r", 0)
+            coordinate = HexCoordinate(q=q, r=r)
+            key = f"{q},{r}"
+            positions[key] = HexPosition(
+                coordinate=coordinate,
+                tile_id=pos_data.get("tile_id", 0),
+                location_name=pos_data.get("name", ""),
+            )
+
+        return GameBoard(width=width, height=height, positions=positions)
+
+    def load_tile_system(self) -> TileSystem:
+        """Load tile promotion table and return configured TileSystem."""
+        data = self._load_yaml("promotions.yml")
+        return TileSystem(data)
+
     def load_all(self) -> dict[str, Any]:
         """Load all game data."""
         return {
@@ -86,4 +116,6 @@ class GameDataLoader:
             "aktiengesellschaften": self.load_aktiengesellschaften(),
             "shares": self.load_shares(),
             "player_boards": self.load_player_boards(),
+            "board": self.load_board(),
+            "tile_system": self.load_tile_system(),
         }

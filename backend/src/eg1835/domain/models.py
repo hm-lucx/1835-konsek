@@ -79,6 +79,51 @@ class PlayerBoard(BaseModel):
     description: str
 
 
+class HexCoordinate(BaseModel):
+    """Hexagonal coordinate using axial system (q, r)."""
+
+    q: int
+    r: int
+
+    def __hash__(self) -> int:
+        """Make HexCoordinate hashable for dict keys."""
+        return hash((self.q, self.r))
+
+    def __eq__(self, other: object) -> bool:
+        """Check equality with another HexCoordinate."""
+        if not isinstance(other, HexCoordinate):
+            return NotImplemented
+        return self.q == other.q and self.r == other.r
+
+
+class HexPosition(BaseModel):
+    """Position of a tile on the game board."""
+
+    coordinate: HexCoordinate
+    tile_id: int
+    location_name: str
+
+
+class GameBoard(BaseModel):
+    """Game board with hex positions and tile placements."""
+
+    width: int
+    height: int
+    positions: dict[str, HexPosition]
+
+    def get_position(self, q: int, r: int) -> HexPosition | None:
+        """Get hex position by coordinate."""
+        key = f"{q},{r}"
+        return self.positions.get(key)
+
+    def get_tile_at(self, q: int, r: int) -> Tile | None:
+        """Get tile at hex coordinate (requires tile data)."""
+        pos = self.get_position(q, r)
+        if pos:
+            return Tile(id=pos.tile_id, color="", name=pos.location_name, cities=0)
+        return None
+
+
 @dataclass(frozen=True)
 class GameState:
     """Immutable game state."""
