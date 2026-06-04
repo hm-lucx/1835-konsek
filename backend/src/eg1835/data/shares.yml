@@ -1,0 +1,373 @@
+# 1835 Konsek Shares
+# Share certificates for companies
+# 68 shares total in the bank
+shares:
+  # Aktiengesellschaften - 8 companies x 10 shares = 80, but we'll use subset
+  # Bayern: 10 shares
+  - id: "BY_1"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+  - id: "BY_2"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+  - id: "BY_3"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+  - id: "BY_4"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+  - id: "BY_5"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+  - id: "BY_6"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+  - id: "BY_7"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+  - id: "BY_8"
+    company_id: "BY"
+    company_name: "Bayern"
+    percentage: 10
+    par_value: 100
+
+  # Sachsen: 10 shares
+  - id: "SA_1"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+  - id: "SA_2"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+  - id: "SA_3"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+  - id: "SA_4"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+  - id: "SA_5"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+  - id: "SA_6"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+  - id: "SA_7"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+  - id: "SA_8"
+    company_id: "SA"
+    company_name: "Sachsen"
+    percentage: 10
+    par_value: 100
+
+  # Baden: 8 shares
+  - id: "BA_1"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+  - id: "BA_2"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+  - id: "BA_3"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+  - id: "BA_4"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+  - id: "BA_5"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+  - id: "BA_6"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+  - id: "BA_7"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+  - id: "BA_8"
+    company_id: "BA"
+    company_name: "Baden"
+    percentage: 10
+    par_value: 100
+
+  # Württemberg: 6 shares
+  - id: "WÜ_1"
+    company_id: "WÜ"
+    company_name: "Württemberg"
+    percentage: 10
+    par_value: 100
+  - id: "WÜ_2"
+    company_id: "WÜ"
+    company_name: "Württemberg"
+    percentage: 10
+    par_value: 100
+  - id: "WÜ_3"
+    company_id: "WÜ"
+    company_name: "Württemberg"
+    percentage: 10
+    par_value: 100
+  - id: "WÜ_4"
+    company_id: "WÜ"
+    company_name: "Württemberg"
+    percentage: 10
+    par_value: 100
+  - id: "WÜ_5"
+    company_id: "WÜ"
+    company_name: "Württemberg"
+    percentage: 10
+    par_value: 100
+  - id: "WÜ_6"
+    company_id: "WÜ"
+    company_name: "Württemberg"
+    percentage: 10
+    par_value: 100
+
+  # Hessen: 6 shares
+  - id: "HE_1"
+    company_id: "HE"
+    company_name: "Hessen"
+    percentage: 10
+    par_value: 100
+  - id: "HE_2"
+    company_id: "HE"
+    company_name: "Hessen"
+    percentage: 10
+    par_value: 100
+  - id: "HE_3"
+    company_id: "HE"
+    company_name: "Hessen"
+    percentage: 10
+    par_value: 100
+  - id: "HE_4"
+    company_id: "HE"
+    company_name: "Hessen"
+    percentage: 10
+    par_value: 100
+  - id: "HE_5"
+    company_id: "HE"
+    company_name: "Hessen"
+    percentage: 10
+    par_value: 100
+  - id: "HE_6"
+    company_id: "HE"
+    company_name: "Hessen"
+    percentage: 10
+    par_value: 100
+
+  # Mecklenburg-Strelitz: 6 shares
+  - id: "MS_1"
+    company_id: "MS"
+    company_name: "Mecklenburg-Strelitz"
+    percentage: 10
+    par_value: 100
+  - id: "MS_2"
+    company_id: "MS"
+    company_name: "Mecklenburg-Strelitz"
+    percentage: 10
+    par_value: 100
+  - id: "MS_3"
+    company_id: "MS"
+    company_name: "Mecklenburg-Strelitz"
+    percentage: 10
+    par_value: 100
+  - id: "MS_4"
+    company_id: "MS"
+    company_name: "Mecklenburg-Strelitz"
+    percentage: 10
+    par_value: 100
+  - id: "MS_5"
+    company_id: "MS"
+    company_name: "Mecklenburg-Strelitz"
+    percentage: 10
+    par_value: 100
+  - id: "MS_6"
+    company_id: "MS"
+    company_name: "Mecklenburg-Strelitz"
+    percentage: 10
+    par_value: 100
+
+  # Oldenburg: 6 shares
+  - id: "OL_1"
+    company_id: "OL"
+    company_name: "Oldenburg"
+    percentage: 10
+    par_value: 100
+  - id: "OL_2"
+    company_id: "OL"
+    company_name: "Oldenburg"
+    percentage: 10
+    par_value: 100
+  - id: "OL_3"
+    company_id: "OL"
+    company_name: "Oldenburg"
+    percentage: 10
+    par_value: 100
+  - id: "OL_4"
+    company_id: "OL"
+    company_name: "Oldenburg"
+    percentage: 10
+    par_value: 100
+  - id: "OL_5"
+    company_id: "OL"
+    company_name: "Oldenburg"
+    percentage: 10
+    par_value: 100
+  - id: "OL_6"
+    company_id: "OL"
+    company_name: "Oldenburg"
+    percentage: 10
+    par_value: 100
+
+  # Preußen: 4 shares
+  - id: "PR_1"
+    company_id: "PR"
+    company_name: "Preußen"
+    percentage: 10
+    par_value: 100
+  - id: "PR_2"
+    company_id: "PR"
+    company_name: "Preußen"
+    percentage: 10
+    par_value: 100
+  - id: "PR_3"
+    company_id: "PR"
+    company_name: "Preußen"
+    percentage: 10
+    par_value: 100
+  - id: "PR_4"
+    company_id: "PR"
+    company_name: "Preußen"
+    percentage: 10
+    par_value: 100
+
+  # Vorpreussische: 16 shares total (6 companies)
+  # Bergisch-Märkische: 3 shares
+  - id: "BM_1"
+    company_id: "BM"
+    company_name: "Bergisch-Märkische"
+    percentage: 10
+    par_value: 100
+  - id: "BM_2"
+    company_id: "BM"
+    company_name: "Bergisch-Märkische"
+    percentage: 10
+    par_value: 100
+  - id: "BM_3"
+    company_id: "BM"
+    company_name: "Bergisch-Märkische"
+    percentage: 10
+    par_value: 100
+
+  # Berlin-Potsdam: 3 shares
+  - id: "BP_1"
+    company_id: "BP"
+    company_name: "Berlin-Potsdam"
+    percentage: 10
+    par_value: 100
+  - id: "BP_2"
+    company_id: "BP"
+    company_name: "Berlin-Potsdam"
+    percentage: 10
+    par_value: 100
+  - id: "BP_3"
+    company_id: "BP"
+    company_name: "Berlin-Potsdam"
+    percentage: 10
+    par_value: 100
+
+  # Magdeburger: 2 shares
+  - id: "MD_1"
+    company_id: "MD"
+    company_name: "Magdeburger"
+    percentage: 10
+    par_value: 100
+  - id: "MD_2"
+    company_id: "MD"
+    company_name: "Magdeburger"
+    percentage: 10
+    par_value: 100
+
+  # Köln-Minden: 3 shares
+  - id: "KM_1"
+    company_id: "KM"
+    company_name: "Köln-Minden"
+    percentage: 10
+    par_value: 100
+  - id: "KM_2"
+    company_id: "KM"
+    company_name: "Köln-Minden"
+    percentage: 10
+    par_value: 100
+  - id: "KM_3"
+    company_id: "KM"
+    company_name: "Köln-Minden"
+    percentage: 10
+    par_value: 100
+
+  # Berlin-Stettiner: 3 shares
+  - id: "BS_1"
+    company_id: "BS"
+    company_name: "Berlin-Stettiner"
+    percentage: 10
+    par_value: 100
+  - id: "BS_2"
+    company_id: "BS"
+    company_name: "Berlin-Stettiner"
+    percentage: 10
+    par_value: 100
+  - id: "BS_3"
+    company_id: "BS"
+    company_name: "Berlin-Stettiner"
+    percentage: 10
+    par_value: 100
+
+  # Altona-Kiel: 2 shares
+  - id: "AK_1"
+    company_id: "AK"
+    company_name: "Altona-Kiel"
+    percentage: 10
+    par_value: 100
+  - id: "AK_2"
+    company_id: "AK"
+    company_name: "Altona-Kiel"
+    percentage: 10
+    par_value: 100

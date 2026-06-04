@@ -1,0 +1,50 @@
+# 1835 Konsek Vorpreussische Gesellschaften (Pre-Prussian Companies)
+# 6 pre-Prussian railway companies
+vorpreussische:
+  - id: "BM"
+    name: "Bergisch-Märkische"
+    abbreviation: "BM"
+    home_city: "Düsseldorf"
+    par_price: 100
+    share_count: 10
+    description: "Bergisch-Märkische railway company"
+  
+  - id: "BP"
+    name: "Berlin-Potsdam"
+    abbreviation: "BP"
+    home_city: "Berlin"
+    par_price: 100
+    share_count: 10
+    description: "Berlin-Potsdam railway company"
+  
+  - id: "MD"
+    name: "Magdeburger"
+    abbreviation: "MD"
+    home_city: "Magdeburg"
+    par_price: 100
+    share_count: 10
+    description: "Magdeburger railway company"
+  
+  - id: "KM"
+    name: "Köln-Minden"
+    abbreviation: "KM"
+    home_city: "Köln"
+    par_price: 100
+    share_count: 10
+    description: "Köln-Minden railway company"
+  
+  - id: "BS"
+    name: "Berlin-Stettiner"
+    abbreviation: "BS"
+    home_city: "Berlin"
+    par_price: 100
+    share_count: 10
+    description: "Berlin-Stettiner railway company"
+  
+  - id: "AK"
+    name: "Altona-Kiel"
+    abbreviation: "AK"
+    home_city: "Altona"
+    par_price: 100
+    share_count: 10
+    description: "Altona-Kiel railway company"

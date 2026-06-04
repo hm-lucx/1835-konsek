@@ -1,0 +1,88 @@
+# 1835 Konsek Player Boards
+# 8 large boards and 6 small boards for player investment tracking
+player_boards:
+  # Large boards (standard, for 3-6 players typical use)
+  - id: "board_large_1"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 1"
+  
+  - id: "board_large_2"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 2"
+  
+  - id: "board_large_3"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 3"
+  
+  - id: "board_large_4"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 4"
+  
+  - id: "board_large_5"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 5"
+  
+  - id: "board_large_6"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 6"
+  
+  - id: "board_large_7"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 7"
+  
+  - id: "board_large_8"
+    size: "large"
+    max_shares: 20
+    certificate_slots: 20
+    description: "Large player board 8"
+
+  # Small boards (for 7+ players or variant play)
+  - id: "board_small_1"
+    size: "small"
+    max_shares: 12
+    certificate_slots: 12
+    description: "Small player board 1"
+  
+  - id: "board_small_2"
+    size: "small"
+    max_shares: 12
+    certificate_slots: 12
+    description: "Small player board 2"
+  
+  - id: "board_small_3"
+    size: "small"
+    max_shares: 12
+    certificate_slots: 12
+    description: "Small player board 3"
+  
+  - id: "board_small_4"
+    size: "small"
+    max_shares: 12
+    certificate_slots: 12
+    description: "Small player board 4"
+  
+  - id: "board_small_5"
+    size: "small"
+    max_shares: 12
+    certificate_slots: 12
+    description: "Small player board 5"
+  
+  - id: "board_small_6"
+    size: "small"
+    max_shares: 12
+    certificate_slots: 12
+    description: "Small player board 6"

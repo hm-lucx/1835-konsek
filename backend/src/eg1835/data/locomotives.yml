@@ -1,0 +1,47 @@
+# 1835 Konsek Locomotives Data
+# Locomotive progression with price, count, and scrap triggers
+# Total count must sum to 33
+locomotives:
+  - tier: 1
+    name: "2-locomotive"
+    price: 120
+    count: 9
+    scrap_trigger: null
+    description: "Starting locomotives, all available initially"
+  
+  - tier: 2
+    name: "3-locomotive"
+    price: 200
+    count: 8
+    scrap_trigger: null
+    description: "Three-space locomotive"
+  
+  - tier: 3
+    name: "4-locomotive"
+    price: 300
+    count: 6
+    scrap_trigger: null
+    description: "Four-space locomotive"
+  
+  - tier: 4
+    name: "5-locomotive"
+    price: 400
+    count: 5
+    scrap_trigger: 3
+    description: "Five-space locomotive, scraps 3-locomotives"
+  
+  - tier: 5
+    name: "6-locomotive"
+    price: 500
+    count: 3
+    scrap_trigger: 4
+    description: "Six-space locomotive, scraps 4-locomotives"
+  
+  - tier: 6
+    name: "6+6-locomotive"
+    price: 600
+    count: 2
+    scrap_trigger: 5
+    description: "Two 6-space locomotives, scraps 5-locomotives"
+
+# Total locomotive count: 9 + 8 + 6 + 5 + 3 + 2 = 33
