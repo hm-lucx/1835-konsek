@@ -15,7 +15,7 @@ ENV PATH="/root/.cargo/bin:$PATH"
 COPY pyproject.toml pyproject.toml
 COPY . .
 
-# Install dependencies using uv
+# Install dependencies using uv (including dev for development)
 RUN uv pip install -e ".[dev]"
 
 EXPOSE 8000

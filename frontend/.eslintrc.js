@@ -6,7 +6,7 @@ export default {
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  ignorePatterns: ['dist', '.eslintrc.*'],
   parser: '@typescript-eslint/parser',
   plugins: ['react-hooks'],
   rules: {
