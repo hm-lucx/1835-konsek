@@ -28,9 +28,10 @@ ValidateResult = Ok[None] | Err[RuleViolation]
 
 
 class Action(Protocol):
-    """Structural interface shared by all action classes."""
+    """Structural interface shared by all (frozen-dataclass) action classes."""
 
-    player_id: PlayerId
+    @property
+    def player_id(self) -> PlayerId: ...  # read-only: actions are frozen
 
     def validate(self, state: GameState) -> ValidateResult: ...
 

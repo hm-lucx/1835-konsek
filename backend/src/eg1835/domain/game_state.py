@@ -135,6 +135,25 @@ class GameState:
     game_over: bool = False
 
     # ------------------------------------------------------------------ #
+    # Phase 10 – Board state & OR flow (all defaulted for backward compat)#
+    # ------------------------------------------------------------------ #
+
+    # Placed track tiles: "q,r" → tile_id (rule 5.5.1).
+    placed_tiles: dict[str, int] = field(default_factory=dict)
+    # Placed station markers: "q,r" → tuple of company_ids on that field (5.5.2).
+    placed_stations: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # company_id → "q,r" of its home station field (set on launch / Baden choice).
+    home_fields: dict[str, str] = field(default_factory=dict)
+    # OR operating order: company_ids in turn order for the current OR (rule 5.3).
+    operating_order: tuple[str, ...] = field(default_factory=tuple)
+    # Index of the currently operating company within ``operating_order``.
+    operating_index: int = 0
+    # Operating rounds already completed in the current OR-set (vs ors_per_set).
+    ors_completed_in_set: int = 0
+    # company_id → revenue from its most recent train run (feeds the dividend).
+    last_run_revenue: dict[str, int] = field(default_factory=dict)
+
+    # ------------------------------------------------------------------ #
     # Factories                                                            #
     # ------------------------------------------------------------------ #
 
@@ -205,6 +224,14 @@ class GameState:
             end_pending=False,
             pending_final_ors=0,
             game_over=False,
+            # Phase 10 fields
+            placed_tiles={},
+            placed_stations={},
+            home_fields={},
+            operating_order=(),
+            operating_index=0,
+            ors_completed_in_set=0,
+            last_run_revenue={},
         )
 
     # ------------------------------------------------------------------ #

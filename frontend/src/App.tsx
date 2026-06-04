@@ -14,7 +14,7 @@ import { useGameStore } from './store/gameStore'
 import './App.css'
 
 function App(): React.ReactElement {
-  const { gameId, playerId, view, legalActions, error, connect, submit } = useGameStore()
+  const { gameId, view, legalActions, error, connect, submit } = useGameStore()
   const [armedMapAction, setArmedMapAction] = useState<string | null>(null)
   const [selectedTileId, setSelectedTileId] = useState<number | null>(null)
   const [starting, setStarting] = useState(false)
@@ -54,6 +54,7 @@ function App(): React.ReactElement {
         ) : (
           <span className="app__game-id">
             Spiel #{gameId} · Zug {view?.sequence ?? 0}
+            {view?.current_actor ? ` · am Zug: ${view.current_actor}` : ''}
             {view?.game_over ? ' · beendet' : ''}
           </span>
         )}
@@ -78,7 +79,7 @@ function App(): React.ReactElement {
           </section>
 
           <aside className="app__side">
-            <PlayerPanel players={view.players} activePlayerId={playerId} />
+            <PlayerPanel players={view.players} activePlayerId={view.current_actor ?? ''} />
             <CompanyPanel companies={view.companies} />
             <TileTray
               tiles={view.tiles}

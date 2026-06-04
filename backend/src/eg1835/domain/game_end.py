@@ -62,6 +62,29 @@ def pay_player_from_bank(state: GameState, player: str, amount: int) -> GameStat
     return new_state
 
 
+def pay_company_from_bank(state: GameState, company_id: str, amount: int) -> GameState:
+    """Pay ``amount`` from the bank into a company treasury (rule 6.1).
+
+    Company assets are not credited at the final settlement, so an unpayable
+    remainder is simply capped (not noted like player ``bank_owed``); draining
+    the bank still schedules the end of the game.
+    """
+    if amount <= 0:
+        return state
+    payable = max(0, min(amount, state.bank_balance))
+    new_state = dataclasses.replace(
+        state,
+        bank_balance=state.bank_balance - payable,
+        company_cash={
+            **state.company_cash,
+            company_id: state.company_cash.get(company_id, 0) + payable,
+        },
+    )
+    if bank_is_empty(new_state):
+        new_state = schedule_end(new_state)
+    return new_state
+
+
 def complete_operating_round(state: GameState) -> GameState:
     """Register that one operating round finished; end the game if it was last."""
     if not state.end_pending or state.game_over:

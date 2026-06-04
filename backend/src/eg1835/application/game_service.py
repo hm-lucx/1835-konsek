@@ -12,8 +12,9 @@ from dataclasses import dataclass
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from ..domain.action_base import RuleViolation
+from ..domain.action_base import Action, RuleViolation
 from ..domain.game_state import GameState
+from ..domain.or_flow import current_actor, step
 from ..domain.result import Err
 from ..domain.serialization import (
     action_from_payload,
@@ -38,6 +39,10 @@ class GameNotFoundError(GameServiceError):
 
 class ConflictError(GameServiceError):
     """Optimistic-locking conflict: stale ``expected_seq`` (HTTP 409)."""
+
+
+class TurnError(GameServiceError):
+    """The submitting player is not the one allowed to act (HTTP 403)."""
 
 
 class ActionValidationError(GameServiceError):
@@ -140,7 +145,7 @@ class GameService:
         events = await self._store.load_events(session, game_id, from_seq, until_seq)
         for event in events:
             action = action_from_payload({"type": event.type, "payload": event.payload})
-            state = action.apply(state)
+            state = step(action, state)
         return state
 
     # ------------------------------------------------------------------ #
@@ -148,7 +153,7 @@ class GameService:
     # ------------------------------------------------------------------ #
 
     async def submit_action(
-        self, game_id: int, player_id: str, action: object, expected_seq: int
+        self, game_id: int, player_id: str, action: Action, expected_seq: int
     ) -> SubmitResult:
         new_seq = expected_seq + 1
         try:
@@ -160,10 +165,15 @@ class GameService:
                     )
 
                 state = await self._replay(session, game_id, expected_seq)
-                result = action.validate(state)  # type: ignore[attr-defined]
+                actor = current_actor(state)
+                if actor is not None and player_id != actor:
+                    raise TurnError(
+                        f"It is {actor}'s turn, not {player_id}'s"
+                    )
+                result = action.validate(state)
                 if isinstance(result, Err):
                     raise ActionValidationError(result.error)
-                new_state = action.apply(state)  # type: ignore[attr-defined]
+                new_state = step(action, state)
 
                 encoded = action_to_payload(action)
                 await self._store.append_event(

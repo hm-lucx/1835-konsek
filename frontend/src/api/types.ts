@@ -64,6 +64,7 @@ export interface GameView {
   or_phase: ORPhase | null
   colored_phase: 1 | 2 | 3
   active_company_id: string | null
+  current_actor: string | null
   game_over: boolean
   bank_balance: number
   train_prices: Record<string, number>
