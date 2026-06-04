@@ -3,7 +3,6 @@ import pytest
 
 from eg1835.domain.loader import GameDataLoader
 from eg1835.domain.tile_system import (
-    CityType,
     TileColor,
     TileSystem,
     TileUpgradeError,
