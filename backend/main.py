@@ -1,21 +1,9 @@
-"""Main FastAPI application."""
+"""Main FastAPI application entry point.
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+The app and all routes are assembled in :mod:`eg1835.api.app`; this module is
+the ASGI entry point referenced by ``uvicorn main:app``.
+"""
 
-app = FastAPI(title="1835 Konsek", version="0.1.0")
+from eg1835.api.app import create_app
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.get("/health")
-async def health() -> dict[str, str]:
-    """Health check endpoint."""
-    return {"status": "ok", "service": "1835-konsek"}
+app = create_app()

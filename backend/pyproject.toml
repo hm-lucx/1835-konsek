@@ -24,6 +24,7 @@ dev = [
     "types-redis>=4.6.0",
     "types-PyYAML>=6.0",
     "httpx>=0.25.0",
+    "aiosqlite>=0.19.0",
 ]
 
 [build-system]
@@ -53,7 +54,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 follow_imports = "silent"
-exclude = ["alembic/"]
+exclude = ["alembic/", "migrations/"]
 
 [[tool.mypy.overrides]]
 module = "yaml"

@@ -120,6 +120,21 @@ class GameState:
     company_debt: dict[str, int] = field(default_factory=dict)
 
     # ------------------------------------------------------------------ #
+    # Phase 8 – Game end (rule 6, all defaulted for backward compat)      #
+    # ------------------------------------------------------------------ #
+
+    # player_id → amount the bank could not pay and owes at final settlement
+    # (rule 6.1).  Credited to the player in ``final_scores``.
+    bank_owed: dict[str, int] = field(default_factory=dict)
+    # True once the bank has run dry and the end has been scheduled (rule 6.1).
+    end_pending: bool = False
+    # Number of *whole* operating rounds still to be played before the game ends
+    # after the end was triggered (0 = finish the current round only).
+    pending_final_ors: int = 0
+    # True once the game is fully over and the final settlement applies.
+    game_over: bool = False
+
+    # ------------------------------------------------------------------ #
     # Factories                                                            #
     # ------------------------------------------------------------------ #
 
@@ -185,6 +200,11 @@ class GameState:
             preussen_paused_this_or=False,
             bankrupt_players=frozenset(),
             company_debt={},
+            # Phase 8 fields
+            bank_owed={},
+            end_pending=False,
+            pending_final_ors=0,
+            game_over=False,
         )
 
     # ------------------------------------------------------------------ #
