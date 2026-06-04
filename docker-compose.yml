@@ -37,7 +37,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: ******postgres:5432/konsek
+      DATABASE_URL: ......postgres:5432/konsek
       REDIS_URL: redis://redis:6379
       PYTHONUNBUFFERED: 1
     depends_on:

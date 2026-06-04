@@ -67,7 +67,7 @@ jobs:
       - name: Run tests
         working-directory: ./backend
         env:
-          DATABASE_URL: ******localhost:5432/konsek
+          DATABASE_URL: ......localhost:5432/konsek
           REDIS_URL: redis://localhost:6379
         run: pytest
 
