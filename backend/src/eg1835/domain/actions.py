@@ -1,7 +1,11 @@
-"""Action framework for 1835 Konsek (Phase 4).
+"""Action framework for 1835 Konsek (Phases 4–6).
 
 Every state mutation goes through an Action: validate first, then apply.
 Actions are immutable frozen dataclasses; GameState is never mutated in place.
+
+Phase 6 fills in the operating-round bodies: build limits (5.4.1), station
+cost (5.5.2), dividend price moves (5.5.3.12) and the locomotive economy
+(5.5.4: limit, director financing, phase changes and Preußen triggers).
 
 Action Protocol
 ---------------
@@ -36,11 +40,16 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from .fsm import (
-    TRAIN_PRICES,
+    TRAIN_SPECS,
     GameLoopPhase,
     ORPhase,
     advance_or_phase,
-    scrap_tier_on_purchase,
+    coloured_phase_trigger,
+    ors_for_coloured_phase,
+    scrap_train_on_first_purchase,
+    tier_to_train_id,
+    train_id_to_tier,
+    train_limit_for_phase,
 )
 from .game_state import GameState
 from .result import Err, Ok
@@ -137,25 +146,131 @@ def _advance_ar(state: GameState, *, reset_passes: bool) -> GameState:
     if ar_ending:
         new_state = _apply_round_end_price_rises(new_state)
         new_state = _reset_ar_tracking(new_state)
+        # OR count scheduled by a phase change takes effect now ("ab der
+        # nächsten AR") -- rule 5.2.
+        new_state = dataclasses.replace(
+            new_state, ors_per_set=new_state.pending_ors_per_set
+        )
     return new_state
 
 
-def _apply_phase_change(state: GameState, purchasing_tier: int) -> GameState:
-    """Advance game phase and scrap obsolete trains if a new tier was bought."""
-    if purchasing_tier <= state.game_phase:
-        return state
-    scrap_tier = scrap_tier_on_purchase(purchasing_tier)
-    new_company_trains: dict[str, list[int]] = {}
-    for cid, trains in state.company_trains.items():
-        if scrap_tier is not None:
-            new_company_trains[cid] = [t for t in trains if t != scrap_tier]
-        else:
-            new_company_trains[cid] = list(trains)
+def _apply_train_purchase_effects(state: GameState, train_id: str) -> GameState:
+    """Apply every rule-5.5.4.14 / 5.2 consequence of buying ``train_id``.
+
+    Idempotent per train id: a consequence fires only on the *first* purchase of
+    that locomotive type (tracked in ``trains_first_bought``).  Effects:
+
+    * ``game_phase`` rises to the train's tier (legacy "highest tier" tracker).
+    * First 3-Lok / 5-Lok advances the coloured phase and schedules the new OR
+      count for the next AR (rule 5.2).
+    * First 4 / 4+4 / 6 / 6+6 scraps all obsolete locomotives (rule 5.5.4.14).
+    * First 4-Lok lets Preußen open; first 4+4-Lok forces it (rules 4, 4.6).
+    * First 5-Lok converts the remaining Vorpreußische + BS + HA into Preußen
+      shares (rules 3.1.3.5, 5.5.4.14).
+    """
+    tier = train_id_to_tier(train_id)
+    is_first = train_id not in state.trains_first_bought
+
+    # game_phase = highest tier ever bought (legacy tracker).
+    new_game_phase = max(state.game_phase, tier) if tier is not None else state.game_phase
+
+    new_state = dataclasses.replace(
+        state,
+        game_phase=new_game_phase,
+        trains_first_bought=state.trains_first_bought | {train_id},
+    )
+    if not is_first:
+        return new_state  # consequences only fire on the first copy
+
+    # Scrap obsolete locomotives across every company (rule 5.5.4.14).
+    scrap_id = scrap_train_on_first_purchase(train_id)
+    if scrap_id is not None:
+        scrap_tier = train_id_to_tier(scrap_id)
+        new_company_trains = {
+            cid: [t for t in trains if t != scrap_tier]
+            for cid, trains in new_state.company_trains.items()
+        }
+        new_state = dataclasses.replace(new_state, company_trains=new_company_trains)
+
+    # Coloured-phase advance + scheduled OR-count change (rule 5.2).
+    trigger = coloured_phase_trigger(train_id)
+    if trigger is not None and trigger > new_state.colored_phase:
+        new_state = dataclasses.replace(
+            new_state,
+            colored_phase=trigger,
+            pending_ors_per_set=ors_for_coloured_phase(trigger),
+        )
+
+    # Preußen activation rules (4, 4.6).
+    if train_id == "4":
+        new_state = dataclasses.replace(new_state, preussen_can_open=True)
+    elif train_id == "4+4":
+        new_state = dataclasses.replace(
+            new_state, preussen_can_open=True, preussen_must_open=True
+        )
+
+    # First 5-Lok: forced conversion of remaining pre-Prussians + BS + HA.
+    if train_id == "5":
+        new_state = _convert_remaining_to_preussen(new_state)
+
+    return new_state
+
+
+# Companies that must convert into Preußen shares when the first 5-Lok is
+# bought: the six Vorpreußische plus the black private railways BS and HA
+# (rules 3.1.3.5, 5.5.4.14).  Note: id "BS" denotes both the Vorpreußische
+# Berlin-Stettiner and the Braunschweigische private railway in the data set.
+_CONVERTS_TO_PREUSSEN = frozenset({"BM", "BP", "MD", "KM", "BS", "AK", "HA"})
+
+
+def _convert_remaining_to_preussen(state: GameState) -> GameState:
+    """Convert every still-active convertible company into Preußen shares.
+
+    Each holder's percentage in a convertible company is moved into Preußen
+    ("PR") holdings; the company's status becomes "converted".  Companies that
+    were already nationalised/converted are left untouched (rule 4.5: no double
+    use).  Marks Preußen as opened.
+    """
+    new_status = dict(state.company_status)
+    new_player_shares = {p: dict(sh) for p, sh in state.player_shares.items()}
+
+    for company_id in _CONVERTS_TO_PREUSSEN:
+        status = state.company_status.get(company_id, "inactive")
+        if status in ("nationalized", "converted"):
+            continue
+        converted_any = False
+        for shares in new_player_shares.values():
+            pct = shares.pop(company_id, 0)
+            if pct > 0:
+                shares["PR"] = shares.get("PR", 0) + pct
+                converted_any = True
+        if converted_any or company_id in state.company_status:
+            new_status[company_id] = "converted"
+
     return dataclasses.replace(
         state,
-        game_phase=purchasing_tier,
-        company_trains=new_company_trains,
+        company_status=new_status,
+        player_shares=new_player_shares,
+        preussen_opened=True,
     )
+
+
+def _resolve_train_id(tier: int | None, train: str | None) -> str | None:
+    """Resolve a buy-train action's identity to a canonical train id.
+
+    Accepts either the Phase-6 ``train`` id ("4+4", …) or a legacy integer
+    ``tier``.  Returns None if neither resolves to a known locomotive.
+    """
+    if train is not None:
+        return train if train in TRAIN_SPECS else None
+    if tier is not None:
+        return tier_to_train_id(tier)
+    return None
+
+
+def _unknown_loco_err(tier: int | None, train: str | None) -> Err[RuleViolation]:
+    """Standard error for an unresolvable buy-train identity (rule 5.5.4)."""
+    return Err(RuleViolation("5.5.4", f"Unknown locomotive: tier={tier} train={train}"))
 
 
 # ---------------------------------------------------------------------------
@@ -268,6 +383,74 @@ def _reset_ar_tracking(state: GameState) -> GameState:
         ar_sold_companies={p: () for p in state.players},
         companies_launched_this_ar=(),
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 private helpers (OR build / station limits)
+# ---------------------------------------------------------------------------
+
+
+def _max_tiles_this_turn(state: GameState, company_id: str) -> int:
+    """Tile-lay limit for a company this turn (rule 5.4.1).
+
+    Vorpreußische: 1.  AGs in coloured phase 1: 2 (yellow).  AGs from phase 2: 1.
+    Private-railway special build rights are counted separately and are not
+    modelled here.
+    """
+    if company_id in _PREUSSISCHE_COMPANIES:
+        return 1
+    return 2 if state.colored_phase == 1 else 1
+
+
+def _train_limit_reached(state: GameState, company_id: str) -> bool:
+    """True if *company_id* is at its locomotive limit (rule 5.5.4.7).
+
+    Uses the *current* coloured-phase limit: a company at the limit may not buy
+    even if the new train would trigger a phase change that scraps one of its
+    locomotives.
+    """
+    owned = len(state.company_trains.get(company_id, []))
+    return owned >= train_limit_for_phase(state.colored_phase)
+
+
+def _can_finance_train(state: GameState, company_id: str, price: int) -> bool:
+    """True if the company (plus director's private cash) can pay ``price``.
+
+    Rule 5.5.4.11–12: the treasury pays first; for an AG the director must cover
+    any shortfall from private cash.  (Selling shares to avoid bankruptcy is
+    issue #8 scope, so a shortfall the director cannot cover fails here.)
+    """
+    company_balance = state.company_cash.get(company_id, 0)
+    if company_balance >= price:
+        return True
+    director = state.company_directors.get(company_id)
+    if director is None:
+        return False
+    return state.cash_per_player.get(director, 0) >= price - company_balance
+
+
+def _pay_for_train(
+    state: GameState, company_id: str, price: int
+) -> tuple[dict[str, int], dict[str, int]]:
+    """Return updated (company_cash, player_cash) after paying ``price``.
+
+    Director-financed purchases leave the treasury at exactly 0 M (rule
+    5.5.4.12).  When no director is registered (test scaffolding), the treasury
+    simply pays directly.
+    """
+    company_balance = state.company_cash.get(company_id, 0)
+    new_player_cash = dict(state.cash_per_player)
+    director = state.company_directors.get(company_id)
+    if company_balance >= price:
+        new_balance = company_balance - price
+    elif director is not None:
+        shortfall = price - company_balance
+        new_player_cash[director] = new_player_cash.get(director, 0) - shortfall
+        new_balance = 0  # AG keeps no Mark after a director-financed buy
+    else:
+        new_balance = company_balance - price
+    new_company_cash = {**state.company_cash, company_id: new_balance}
+    return new_company_cash, new_player_cash
 
 
 # ===========================================================================
@@ -741,7 +924,12 @@ class Pass:
 
 @dataclass(frozen=True)
 class LayTile:
-    """Lay a yellow tile in the build phase (rule 5.4 BUILD, 5.5.1)."""
+    """Lay a tile in the build phase (rules 5.4 BUILD, 5.4.1, 5.5.1).
+
+    Enforces the per-turn tile-lay limit (rule 5.4.1).  Stays in BUILD so a
+    phase-1 AG can lay its second tile; ``Pass`` advances BUILD → STATION.
+    Board geometry is deferred to the Phase 2/3 board integration.
+    """
 
     player_id: PlayerId
     tile_id: int
@@ -752,15 +940,38 @@ class LayTile:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
         if isinstance(result, Err):
             return result
-        return _require_or_phase(state, ORPhase.BUILD, rule="5.5.1")
+        result = _require_or_phase(state, ORPhase.BUILD, rule="5.5.1")
+        if isinstance(result, Err):
+            return result
+        company_id = state.active_company_id
+        if company_id is None:
+            return Err(RuleViolation("5.4", "No active company in OR turn"))
+        laid = state.tiles_laid_this_turn.get(company_id, 0)
+        if laid >= _max_tiles_this_turn(state, company_id):
+            return Err(
+                RuleViolation(
+                    "5.4.1",
+                    f"{company_id} already laid {laid} tile(s) this turn",
+                )
+            )
+        return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
-        return state  # board mutation deferred to Phase 2/5 integration
+        company_id = state.active_company_id
+        assert company_id is not None
+        new_counts = {
+            **state.tiles_laid_this_turn,
+            company_id: state.tiles_laid_this_turn.get(company_id, 0) + 1,
+        }
+        return dataclasses.replace(state, tiles_laid_this_turn=new_counts)
 
 
 @dataclass(frozen=True)
 class UpgradeTile:
-    """Upgrade an existing tile in the build phase (rule 5.5.1.14)."""
+    """Upgrade an existing tile in the build phase (rule 5.5.1.14).
+
+    Counts against the same per-turn build limit as ``LayTile`` (rule 5.4.1).
+    """
 
     player_id: PlayerId
     tile_id: int
@@ -771,10 +982,30 @@ class UpgradeTile:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
         if isinstance(result, Err):
             return result
-        return _require_or_phase(state, ORPhase.BUILD, rule="5.5.1.14")
+        result = _require_or_phase(state, ORPhase.BUILD, rule="5.5.1.14")
+        if isinstance(result, Err):
+            return result
+        company_id = state.active_company_id
+        if company_id is None:
+            return Err(RuleViolation("5.4", "No active company in OR turn"))
+        laid = state.tiles_laid_this_turn.get(company_id, 0)
+        if laid >= _max_tiles_this_turn(state, company_id):
+            return Err(
+                RuleViolation(
+                    "5.4.1",
+                    f"{company_id} already laid {laid} tile(s) this turn",
+                )
+            )
+        return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
-        return state
+        company_id = state.active_company_id
+        assert company_id is not None
+        new_counts = {
+            **state.tiles_laid_this_turn,
+            company_id: state.tiles_laid_this_turn.get(company_id, 0) + 1,
+        }
+        return dataclasses.replace(state, tiles_laid_this_turn=new_counts)
 
 
 @dataclass(frozen=True)
@@ -832,21 +1063,66 @@ class UsePFBuildAbility:
 
 @dataclass(frozen=True)
 class PlaceStation:
-    """Place a company station token (rule 5.4 STATION)."""
+    """Place an additional company station token (rules 5.4 STATION, 5.5.2).
+
+    Cost = 20 M × ``distance`` (field distance to the home station; the home
+    station itself is free and placed at launch).  At most one station per OR
+    turn (rule 5.5.2).  Vorpreußische companies may only ever hold their home
+    station, so an additional station is rejected for them.  The field
+    distance is supplied by the caller (board-distance routing is Phase 3+).
+    """
 
     player_id: PlayerId
     company_id: str
     q: int
     r: int
+    distance: int = 0  # field distance to home; 20 M per field (rule 5.5.2)
 
     def validate(self, state: GameState) -> ValidateResult:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
         if isinstance(result, Err):
             return result
-        return _require_or_phase(state, ORPhase.STATION)
+        result = _require_or_phase(state, ORPhase.STATION, rule="5.5.2")
+        if isinstance(result, Err):
+            return result
+        if self.company_id in _PREUSSISCHE_COMPANIES:
+            return Err(
+                RuleViolation(
+                    "5.5.2",
+                    f"{self.company_id} is Vorpreußische – only a home station allowed",
+                )
+            )
+        if state.stations_built_this_turn.get(self.company_id, 0) >= 1:
+            return Err(
+                RuleViolation("5.5.2", f"{self.company_id} already built a station this turn")
+            )
+        cost = 20 * self.distance
+        if state.company_cash.get(self.company_id, 0) < cost:
+            return Err(
+                RuleViolation(
+                    "5.5.2",
+                    f"{self.company_id} cannot afford station "
+                    f"(needs {cost} M for {self.distance} fields)",
+                )
+            )
+        return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
-        return dataclasses.replace(state, or_phase=advance_or_phase(ORPhase.STATION))
+        cost = 20 * self.distance
+        new_company_cash = {
+            **state.company_cash,
+            self.company_id: state.company_cash.get(self.company_id, 0) - cost,
+        }
+        new_counts = {
+            **state.stations_built_this_turn,
+            self.company_id: state.stations_built_this_turn.get(self.company_id, 0) + 1,
+        }
+        return dataclasses.replace(
+            state,
+            company_cash=new_company_cash,
+            stations_built_this_turn=new_counts,
+            or_phase=advance_or_phase(ORPhase.STATION),
+        )
 
 
 @dataclass(frozen=True)
@@ -893,9 +1169,12 @@ class RunTrains:
 
 @dataclass(frozen=True)
 class DeclareDividend:
-    """Pay out the full revenue to shareholders (rule 5.5.3.11.5).
+    """Pay out the full revenue to shareholders (rules 5.5.3.11.5, 5.5.3.12).
 
-    Transitions DIVIDEND_DECISION → BUY_TRAIN upon application.
+    Each player receives ``amount`` × their holding; the remainder (pool /
+    unsold shares / rounding) stays in the company treasury.  The share price
+    then moves **one field up** (rule 5.5.3.12).  Transitions
+    DIVIDEND_DECISION → BUY_TRAIN.
     """
 
     player_id: PlayerId
@@ -909,20 +1188,48 @@ class DeclareDividend:
         return _require_or_phase(state, ORPhase.DIVIDEND_DECISION, rule="5.5.3.11.5")
 
     def apply(self, state: GameState) -> GameState:
+        new_cash = dict(state.cash_per_player)
+        distributed = 0
+        for player, shares in state.player_shares.items():
+            pct = shares.get(self.company_id, 0)
+            if pct > 0:
+                share_amount = self.amount * pct // 100
+                new_cash[player] = new_cash.get(player, 0) + share_amount
+                distributed += share_amount
+
+        # Pool / unsold / rounding remainder goes to the company treasury.
+        remainder = self.amount - distributed
+        new_company_cash = {
+            **state.company_cash,
+            self.company_id: state.company_cash.get(self.company_id, 0) + remainder,
+        }
+
+        # Payout moves the price one field up (rule 5.5.3.12).
+        new_prices = dict(state.share_prices)
+        if self.company_id in new_prices:
+            new_prices[self.company_id] = step_up(new_prices[self.company_id])
+
         return dataclasses.replace(
-            state, or_phase=advance_or_phase(ORPhase.DIVIDEND_DECISION)
+            state,
+            cash_per_player=new_cash,
+            company_cash=new_company_cash,
+            share_prices=new_prices,
+            or_phase=advance_or_phase(ORPhase.DIVIDEND_DECISION),
         )
 
 
 @dataclass(frozen=True)
 class WithholdDividend:
-    """Retain all revenue in company treasury (rule 5.5.3.11.5).
+    """Retain all revenue in the company treasury (rules 5.5.3.11.5, 5.5.3.12).
 
-    Transitions DIVIDEND_DECISION → BUY_TRAIN upon application.
+    The full ``amount`` is added to the treasury and the share price moves
+    **one field down** (rule 5.5.3.12).  Transitions DIVIDEND_DECISION →
+    BUY_TRAIN.
     """
 
     player_id: PlayerId
     company_id: str
+    amount: int = 0
 
     def validate(self, state: GameState) -> ValidateResult:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
@@ -931,8 +1238,20 @@ class WithholdDividend:
         return _require_or_phase(state, ORPhase.DIVIDEND_DECISION, rule="5.5.3.11.5")
 
     def apply(self, state: GameState) -> GameState:
+        new_company_cash = {
+            **state.company_cash,
+            self.company_id: state.company_cash.get(self.company_id, 0) + self.amount,
+        }
+        # Saving moves the price one field down (rule 5.5.3.12).
+        new_prices = dict(state.share_prices)
+        if self.company_id in new_prices:
+            new_prices[self.company_id] = step_down(new_prices[self.company_id])
+
         return dataclasses.replace(
-            state, or_phase=advance_or_phase(ORPhase.DIVIDEND_DECISION)
+            state,
+            company_cash=new_company_cash,
+            share_prices=new_prices,
+            or_phase=advance_or_phase(ORPhase.DIVIDEND_DECISION),
         )
 
 
@@ -943,124 +1262,209 @@ class WithholdDividend:
 
 @dataclass(frozen=True)
 class BuyTrainFromBank:
-    """Buy a locomotive from the bank (rule 5.4 BUY_TRAIN, 5.3).
+    """Buy a locomotive from the bank (rules 5.4 BUY_TRAIN, 5.5.4).
 
-    Triggers a game-phase advance when the first train of a new tier is
-    purchased; scraps the obsolete tier as specified in rule 5.3.  Multiple
-    purchases across different companies can each trigger a phase change.
+    Identity is the canonical ``train`` id ("2", "4+4", …); a legacy integer
+    ``tier`` is also accepted (Phase-4 compatibility).  Enforces the locomotive
+    limit (5.5.4.7) and director financing (5.5.4.11–12), then applies every
+    phase-change consequence (5.2, 5.5.4.14) via ``_apply_train_purchase_effects``.
     """
 
     player_id: PlayerId
     company_id: str
-    tier: int
+    tier: int | None = None
+    train: str | None = None
 
     def validate(self, state: GameState) -> ValidateResult:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
         if isinstance(result, Err):
             return result
-        result = _require_or_phase(state, ORPhase.BUY_TRAIN, rule="5.3")
+        result = _require_or_phase(state, ORPhase.BUY_TRAIN, rule="5.5.4")
         if isinstance(result, Err):
             return result
-        available = state.available_trains.get(self.tier, 0)
-        if available <= 0:
+        train_id = _resolve_train_id(self.tier, self.train)
+        if train_id is None:
+            return _unknown_loco_err(self.tier, self.train)
+        tier = train_id_to_tier(train_id)
+        if state.available_trains.get(tier, 0) <= 0:  # type: ignore[arg-type]
+            return Err(RuleViolation("5.5.4", f"No {train_id}-Lok left in the bank"))
+        if _train_limit_reached(state, self.company_id):
+            limit = train_limit_for_phase(state.colored_phase)
             return Err(
                 RuleViolation(
-                    rule="5.3",
-                    message=f"No tier-{self.tier} trains left in the bank",
+                    "5.5.4.7",
+                    f"{self.company_id} is at its locomotive limit "
+                    f"({limit} in phase {state.colored_phase})",
                 )
             )
-        price = TRAIN_PRICES.get(self.tier, 0)
-        company_balance = state.company_cash.get(self.company_id, 0)
-        if company_balance < price:
+        price = TRAIN_SPECS[train_id].price
+        if not _can_finance_train(state, self.company_id, price):
             return Err(
                 RuleViolation(
-                    rule="5.3",
-                    message=(
-                        f"{self.company_id} cannot afford tier-{self.tier} train "
-                        f"(needs {price}, has {company_balance})"
-                    ),
+                    "5.5.4.12",
+                    f"{self.company_id} cannot finance {train_id}-Lok ({price} M) "
+                    "even with director's private cash",
                 )
             )
         return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
-        price = TRAIN_PRICES[self.tier]
-        # Update bank and company treasury.
-        new_available = {**state.available_trains, self.tier: state.available_trains[self.tier] - 1}
-        new_company_cash = {
-            **state.company_cash,
-            self.company_id: state.company_cash.get(self.company_id, 0) - price,
+        train_id = _resolve_train_id(self.tier, self.train)
+        assert train_id is not None
+        tier = train_id_to_tier(train_id)
+        assert tier is not None
+        price = TRAIN_SPECS[train_id].price
+
+        new_company_cash, new_player_cash = _pay_for_train(state, self.company_id, price)
+        new_available = {
+            **state.available_trains,
+            tier: state.available_trains.get(tier, 0) - 1,
         }
         new_company_trains = {
             **state.company_trains,
-            self.company_id: state.company_trains.get(self.company_id, []) + [self.tier],
+            self.company_id: state.company_trains.get(self.company_id, []) + [tier],
         }
         new_state = dataclasses.replace(
             state,
             available_trains=new_available,
             company_cash=new_company_cash,
+            cash_per_player=new_player_cash,
             company_trains=new_company_trains,
             bank_balance=state.bank_balance + price,
         )
-        # Phase change: runs *after* train is placed, may scrap older trains.
-        return _apply_phase_change(new_state, self.tier)
+        # Phase-change consequences run *after* the train is placed.
+        return _apply_train_purchase_effects(new_state, train_id)
 
 
 @dataclass(frozen=True)
 class BuyTrainFromPool:
-    """Buy a discarded locomotive from the market pool (rule 5.4 BUY_TRAIN)."""
+    """Buy a scrapped locomotive from the bank pool at its printed price.
+
+    Available from the moment a locomotive is scrapped (rule 5.5.4.8).  Subject
+    to the same limit / financing rules as a bank purchase.  Pool inventory
+    accounting is deferred to the persistence layer (issue #9).
+    """
 
     player_id: PlayerId
     company_id: str
-    tier: int
+    tier: int | None = None
+    train: str | None = None
 
     def validate(self, state: GameState) -> ValidateResult:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
         if isinstance(result, Err):
             return result
-        return _require_or_phase(state, ORPhase.BUY_TRAIN)
+        result = _require_or_phase(state, ORPhase.BUY_TRAIN, rule="5.5.4")
+        if isinstance(result, Err):
+            return result
+        train_id = _resolve_train_id(self.tier, self.train)
+        if train_id is None:
+            return _unknown_loco_err(self.tier, self.train)
+        if _train_limit_reached(state, self.company_id):
+            return Err(RuleViolation("5.5.4.7", f"{self.company_id} is at its locomotive limit"))
+        price = TRAIN_SPECS[train_id].price
+        if not _can_finance_train(state, self.company_id, price):
+            return Err(
+                RuleViolation("5.5.4.12", f"{self.company_id} cannot finance {train_id}-Lok")
+            )
+        return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
+        train_id = _resolve_train_id(self.tier, self.train)
+        assert train_id is not None
+        tier = train_id_to_tier(train_id)
+        assert tier is not None
+        price = TRAIN_SPECS[train_id].price
+
+        new_company_cash, new_player_cash = _pay_for_train(state, self.company_id, price)
         new_company_trains = {
             **state.company_trains,
-            self.company_id: state.company_trains.get(self.company_id, []) + [self.tier],
+            self.company_id: state.company_trains.get(self.company_id, []) + [tier],
         }
-        new_state = dataclasses.replace(state, company_trains=new_company_trains)
-        return _apply_phase_change(new_state, self.tier)
+        new_state = dataclasses.replace(
+            state,
+            company_cash=new_company_cash,
+            cash_per_player=new_player_cash,
+            company_trains=new_company_trains,
+            bank_balance=state.bank_balance + price,
+        )
+        return _apply_train_purchase_effects(new_state, train_id)
 
 
 @dataclass(frozen=True)
 class BuyTrainFromCompany:
-    """Buy a locomotive directly from another company (rule 5.4 BUY_TRAIN)."""
+    """Buy a locomotive directly from another company (rule 5.5.4.3).
+
+    Only allowed from coloured phase 2 onward; the price is freely negotiable
+    and transferred from the buyer's to the seller's treasury.
+    """
 
     player_id: PlayerId
     company_id: str
     from_company_id: str
-    tier: int
+    tier: int | None = None
+    train: str | None = None
+    price: int = 0  # negotiated price (rule 5.5.4.3)
 
     def validate(self, state: GameState) -> ValidateResult:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
         if isinstance(result, Err):
             return result
-        if self.tier not in state.company_trains.get(self.from_company_id, []):
+        result = _require_or_phase(state, ORPhase.BUY_TRAIN, rule="5.5.4")
+        if isinstance(result, Err):
+            return result
+        if state.colored_phase < 2:
             return Err(
                 RuleViolation(
-                    rule="5.4",
-                    message=f"{self.from_company_id} does not own a tier-{self.tier} train",
+                    "5.5.4.3",
+                    "Buying locomotives between companies is allowed from phase 2 only",
                 )
             )
-        return _require_or_phase(state, ORPhase.BUY_TRAIN)
+        train_id = _resolve_train_id(self.tier, self.train)
+        if train_id is None:
+            return _unknown_loco_err(self.tier, self.train)
+        tier = train_id_to_tier(train_id)
+        if tier not in state.company_trains.get(self.from_company_id, []):
+            return Err(
+                RuleViolation(
+                    "5.5.4.3",
+                    f"{self.from_company_id} does not own a {train_id}-Lok",
+                )
+            )
+        if _train_limit_reached(state, self.company_id):
+            return Err(RuleViolation("5.5.4.7", f"{self.company_id} is at its locomotive limit"))
+        if state.company_cash.get(self.company_id, 0) < self.price:
+            return Err(
+                RuleViolation("5.5.4.3", f"{self.company_id} cannot afford {self.price} M")
+            )
+        return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
+        train_id = _resolve_train_id(self.tier, self.train)
+        assert train_id is not None
+        tier = train_id_to_tier(train_id)
+        assert tier is not None
+
         src_trains = list(state.company_trains.get(self.from_company_id, []))
-        src_trains.remove(self.tier)
-        dst_trains = state.company_trains.get(self.company_id, []) + [self.tier]
+        src_trains.remove(tier)
+        dst_trains = state.company_trains.get(self.company_id, []) + [tier]
         new_company_trains = {
             **state.company_trains,
             self.from_company_id: src_trains,
             self.company_id: dst_trains,
         }
-        return dataclasses.replace(state, company_trains=new_company_trains)
+        # Price moves between the two treasuries (rule 5.5.4.3).
+        new_company_cash = {
+            **state.company_cash,
+            self.company_id: state.company_cash.get(self.company_id, 0) - self.price,
+            self.from_company_id: state.company_cash.get(self.from_company_id, 0) + self.price,
+        }
+        new_state = dataclasses.replace(
+            state,
+            company_trains=new_company_trains,
+            company_cash=new_company_cash,
+        )
+        return _apply_train_purchase_effects(new_state, train_id)
 
 
 # ===========================================================================
