@@ -1,0 +1,126 @@
+# 1835 Tile Promotion Table
+# Source: Promotionstabellen-Seite, Regel 5.5.1.14, 5.5.1.17
+# RULE_AMBIGUITY: This table contains the subset documented in the Aufbauplan.
+# The full table requires the physical rulebook.
+
+promotions:
+  # Gelb → Grün (Yellow → Green)
+  yellow_to_green:
+    - from: 1
+      to: [88]
+    - from: 2
+      to: [87]
+    - from: 3
+      to: [87, 88, 204]
+    - from: 4
+      to: [87, 88, 204]
+    - from: 5
+      to: [12, 14, 15, 205, 206]
+    - from: 6
+      to: [12, 13, 14, 15, 205]
+    - from: 7
+      to: [18, 26, 27, 28, 29]
+    - from: 8
+      to: [16, 19, 23, 24, 25, 28, 29]
+    - from: 9
+      to: [18, 19, 20, 23, 24, 26, 27]
+
+  # Grün → Braun (Green → Brown)
+  green_to_brown:
+    - from: 16
+      to: [43, 70]
+    - from: 23
+      to: [41, 43, 45, 47]
+    - from: 207
+      to: [216]
+
+  # Tiles explicitly not upgradeable (Regel 5.5.1.17)
+  not_upgradeable:
+    - 14
+    - 15
+    - 87
+    - 88
+
+# City type mappings for Regel 5.5.1.16 (Stadt-Typ-Erhalt)
+# Types: none, small, normal, large_y, double_xx, berlin, hamburg
+city_types:
+  # Yellow tiles
+  - tile_id: 1
+    type: none
+  - tile_id: 2
+    type: none
+  - tile_id: 3
+    type: none
+  - tile_id: 4
+    type: none
+  - tile_id: 5
+    type: small
+  - tile_id: 6
+    type: small
+  - tile_id: 7
+    type: none
+  - tile_id: 8
+    type: small
+  - tile_id: 9
+    type: small
+  # Green tiles
+  - tile_id: 12
+    type: small
+  - tile_id: 13
+    type: small
+  - tile_id: 14
+    type: small
+  - tile_id: 15
+    type: small
+  - tile_id: 16
+    type: small
+  - tile_id: 18
+    type: none
+  - tile_id: 19
+    type: small
+  - tile_id: 20
+    type: small
+  - tile_id: 23
+    type: small
+  - tile_id: 24
+    type: small
+  - tile_id: 25
+    type: small
+  - tile_id: 26
+    type: small
+  - tile_id: 27
+    type: small
+  - tile_id: 28
+    type: none
+  - tile_id: 29
+    type: none
+  - tile_id: 87
+    type: none
+  - tile_id: 88
+    type: none
+  - tile_id: 204
+    type: none
+  - tile_id: 205
+    type: small
+  - tile_id: 206
+    type: small
+  - tile_id: 207
+    type: normal
+  # Brown tiles
+  - tile_id: 41
+    type: small
+  - tile_id: 43
+    type: small
+  - tile_id: 45
+    type: small
+  - tile_id: 47
+    type: small
+  - tile_id: 70
+    type: small
+  - tile_id: 216
+    type: normal
+
+# Mannheim/Ludwigshafen special rule preparation (Regel 5.5.2.10)
+# Baden's home station choice is deferred until the hex is first built.
+# Map-side preparation required for Phase 7.
+mannheim_ludwigshafen_prepared: true

@@ -16,6 +16,7 @@ from .models import (
     Tile,
     VorpreussischeGesellschaft,
 )
+from .tile_system import TileSystem
 
 
 class GameDataLoader:
@@ -100,6 +101,11 @@ class GameDataLoader:
 
         return GameBoard(width=width, height=height, positions=positions)
 
+    def load_tile_system(self) -> TileSystem:
+        """Load tile promotion table and return configured TileSystem."""
+        data = self._load_yaml("promotions.yml")
+        return TileSystem(data)
+
     def load_all(self) -> dict[str, Any]:
         """Load all game data."""
         return {
@@ -111,4 +117,5 @@ class GameDataLoader:
             "shares": self.load_shares(),
             "player_boards": self.load_player_boards(),
             "board": self.load_board(),
+            "tile_system": self.load_tile_system(),
         }
