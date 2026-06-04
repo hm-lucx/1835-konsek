@@ -2,17 +2,17 @@
 
 Implements Rules 5.5.1.1 - 5.5.1.23 from the 1835 rulebook.
 """
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class TileColor(str, Enum):
+class TileColor(StrEnum):
     YELLOW = "yellow"
     GREEN = "green"
     BROWN = "brown"
 
 
-class CityType(str, Enum):
+class CityType(StrEnum):
     NONE = "none"           # plain track, no city
     SMALL = "small"         # Kleinstadt, 10er, Regel 5.5.1.6
     NORMAL = "normal"       # Normal city, 20er, Regel 5.5.1.8
