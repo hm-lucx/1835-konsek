@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim as runtime
 
 WORKDIR /app
 
@@ -15,9 +15,18 @@ ENV PATH="/root/.cargo/bin:$PATH"
 COPY pyproject.toml pyproject.toml
 COPY . .
 
-# Install dependencies using uv (including dev for development)
-RUN uv pip install -e ".[dev]"
+# Install runtime dependencies
+RUN uv pip install -e .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Development stage includes dev dependencies
+FROM runtime as development
+
+# Install dev dependencies
+RUN uv pip install -e ".[dev]"
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Default to runtime stage
+FROM development

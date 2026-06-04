@@ -19,17 +19,17 @@ dev-build:
 
 test:
 	docker-compose exec backend pytest
-	docker-compose exec frontend npm run type-check
+	docker-compose exec frontend pnpm run type-check
 
 lint:
 	docker-compose exec backend ruff check .
 	docker-compose exec backend mypy . --strict
-	docker-compose exec frontend npm run lint
+	docker-compose exec frontend pnpm run lint
 
 format:
 	docker-compose exec backend ruff format .
 	docker-compose exec backend ruff check . --fix
-	docker-compose exec frontend npm run lint -- --fix
+	docker-compose exec frontend pnpm run lint -- --fix
 
 migrate:
 	docker-compose exec backend alembic upgrade head

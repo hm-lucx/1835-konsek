@@ -54,7 +54,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./backend
-        run: uv pip install -e ".[dev]"
+        run: uv pip install --system -e ".[dev]"
 
       - name: Run ruff
         working-directory: ./backend
