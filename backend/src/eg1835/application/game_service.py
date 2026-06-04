@@ -22,6 +22,7 @@ from ..domain.serialization import (
     load_snapshot,
 )
 from ..infrastructure.repository import EventStore
+from .view import build_view, legal_actions
 
 # A snapshot is written every this-many events to keep replay cheap (issue #9).
 SNAPSHOT_INTERVAL = 20
@@ -184,64 +185,17 @@ class GameService:
             ) from exc
 
     # ------------------------------------------------------------------ #
-    # Legal-action templates                                               #
+    # Frontend projections (Phase 9)                                       #
     # ------------------------------------------------------------------ #
 
-    async def get_legal_actions(self, game_id: int, player_id: str) -> list[dict[str, object]]:
-        """Return the action templates applicable in the current phase.
+    async def get_view(self, game_id: int) -> dict[str, object]:
+        """Render view-model (board / stocks / players / companies) for the UI."""
+        async with self._session_factory() as session:
+            sequence = await self._store.max_sequence(session, game_id)
+            state = await self._replay(session, game_id, None)
+        return build_view(state, sequence)
 
-        A lightweight hint for the client (full per-field enumeration is left to
-        the frontend): each template lists an action type and its field names.
-        """
+    async def get_legal_actions(self, game_id: int, player_id: str) -> dict[str, object]:
+        """Concrete legal actions for ``player_id`` in the current phase."""
         state = await self.get_state(game_id)
-        return legal_action_templates(state)
-
-
-# Action types available per game-loop / OR sub-phase (rule 5.4 ordering).
-_AR_ACTIONS = ("BuyShareFromBank", "BuyShareFromPool", "SellShares", "Nationalize", "Pass")
-_START_ACTIONS = ("BuyStartItem", "Pass")
-_OR_ACTIONS_BY_SUBPHASE = {
-    "build": ("LayTile", "UpgradeTile", "UseOBAbility", "UsePFBuildAbility", "Pass"),
-    "station": (
-        "PlaceStation",
-        "UseNFAbility",
-        "UsePFStationAbility",
-        "ChooseBadenHomeStation",
-        "Pass",
-    ),
-    "run": ("RunTrains",),
-    "dividend_decision": ("DeclareDividend", "WithholdDividend"),
-    "buy_train": (
-        "BuyTrainFromBank",
-        "BuyTrainFromPool",
-        "BuyTrainFromCompany",
-        "BuyMandatoryTrain",
-        "Pass",
-    ),
-    "done": (),
-}
-
-
-def legal_action_templates(state: GameState) -> list[dict[str, object]]:
-    """Action-type templates applicable in ``state`` (see ``get_legal_actions``)."""
-    if state.game_over:
-        return []
-    loop = state.game_loop_phase.value
-    if loop == "start_packet_ar":
-        names: tuple[str, ...] = _START_ACTIONS
-    elif loop == "ar":
-        names = _AR_ACTIONS
-    else:  # operating round
-        names = _OR_ACTIONS_BY_SUBPHASE.get(
-            state.or_phase.value if state.or_phase is not None else "done", ()
-        )
-    from ..domain.serialization import ACTION_REGISTRY
-
-    templates: list[dict[str, object]] = []
-    for name in names:
-        cls = ACTION_REGISTRY.get(name)
-        if cls is None:
-            continue
-        fields = [f for f in cls.__dataclass_fields__ if f != "player_id"]  # type: ignore[attr-defined]
-        templates.append({"type": name, "fields": fields})
-    return templates
+        return legal_actions(state, player_id)

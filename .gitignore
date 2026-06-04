@@ -40,6 +40,13 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env
 frontend/.env.local
+# Frontend build / test artifacts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+frontend/test-results/
+frontend/playwright-report/
+e2e.db
 
 # Backend
 backend/.env
