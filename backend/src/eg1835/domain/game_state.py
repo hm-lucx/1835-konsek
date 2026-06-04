@@ -1,4 +1,4 @@
-"""Phase 4 GameState for 1835 Konsek.
+"""GameState for 1835 Konsek (Phase 4 + Phase 5).
 
 An immutable record of all state needed by the action / FSM layer.  Fields are
 *never mutated in place* -- actions always call ``dataclasses.replace()`` to
@@ -7,9 +7,10 @@ produce a new instance.
 from __future__ import annotations
 
 import dataclasses
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .fsm import GameLoopPhase, ORPhase
+from .start_packet import BASE_CERT_LIMIT, INITIAL_START_PACKET_ROWS
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,33 @@ class GameState:
     ar_consecutive_passes: int
 
     # ------------------------------------------------------------------ #
+    # Phase 5 – Share-round (AR) state (all defaulted for backward compat)#
+    # ------------------------------------------------------------------ #
+
+    # player_id → {company_id → percent held}
+    player_shares: dict[str, dict[str, int]] = field(default_factory=dict)
+    # company_id → player_id of current director (None = no director yet)
+    company_directors: dict[str, str | None] = field(default_factory=dict)
+    # company_id → % currently in the bank pool (sold back, max 50%)
+    pool_shares: dict[str, int] = field(default_factory=dict)
+    # company_id → current price on the Aktienkurstafel
+    share_prices: dict[str, int] = field(default_factory=dict)
+    # company_id → "inactive" | "launched"
+    company_status: dict[str, str] = field(default_factory=dict)
+    # company_id → % still sitting in "Nichtverkaufte Aktien"
+    unsold_shares: dict[str, int] = field(default_factory=dict)
+    # Remaining start-packet rows; outer tuple = rows, inner = item IDs
+    start_packet_rows: tuple[tuple[str, ...], ...] = field(
+        default_factory=lambda: ()
+    )
+    # player_id → tuple of company_ids sold from this AR (no re-buy rule 2.6.2)
+    ar_sold_companies: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # Companies that launched *this* AR – their shares are unsellable until next AR
+    companies_launched_this_ar: tuple[str, ...] = field(default_factory=lambda: ())
+    # player_id → number of certificates held (for paper limit rule 2.6.2.6)
+    player_certificates: dict[str, int] = field(default_factory=dict)
+
+    # ------------------------------------------------------------------ #
     # Factories                                                            #
     # ------------------------------------------------------------------ #
 
@@ -71,6 +99,17 @@ class GameState:
             or_phase=None,
             active_company_id=None,
             ar_consecutive_passes=0,
+            # Phase 5 fields
+            player_shares={p: {} for p in player_names},
+            company_directors={},
+            pool_shares={},
+            share_prices={},
+            company_status={},
+            unsold_shares={},
+            start_packet_rows=INITIAL_START_PACKET_ROWS,
+            ar_sold_companies={p: () for p in player_names},
+            companies_launched_this_ar=(),
+            player_certificates={p: 0 for p in player_names},
         )
 
     # ------------------------------------------------------------------ #
@@ -87,3 +126,20 @@ class GameState:
             self,
             current_player_index=(self.current_player_index + 1) % len(self.players),
         )
+
+    def certificate_limit(self, player_id: str) -> int:
+        """Paper limit for *player_id*, including the ≥80% company bonus (2.6.2.6)."""
+        base = BASE_CERT_LIMIT.get(len(self.players), 20)
+        bonus = sum(
+            1
+            for pct in self.player_shares.get(player_id, {}).values()
+            if pct >= 80
+        )
+        return base + bonus
+
+    def total_sold(self, company_id: str) -> int:
+        """Total % of *company_id* held by players + pool (used for launch check)."""
+        player_total = sum(
+            shares.get(company_id, 0) for shares in self.player_shares.values()
+        )
+        return player_total + self.pool_shares.get(company_id, 0)
