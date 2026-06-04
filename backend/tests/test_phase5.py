@@ -131,9 +131,9 @@ class TestStartPacketReplay:
         state = self._buy(state, "Player 3", "PF")
         assert state.cash_per_player["Player 3"] == 340
 
-        # Packet empty: BY and SA now on the price board.
-        assert state.share_prices["BY"] == 100
-        assert state.share_prices["SA"] == 100
+        # Packet empty: BY and SA now on the price board at their par prices.
+        assert state.share_prices["BY"] == 92   # BY par = 92 M (rule 3.3 table)
+        assert state.share_prices["SA"] == 88   # SA par = 88 M (rule 3.3 table)
         assert state.unsold_shares["BY"] == 100
         assert state.unsold_shares["SA"] == 100
         # Game transitions to OR.
@@ -384,11 +384,11 @@ class TestCompanyLaunch:
 
 class TestPaperLimit:
     def _state_at_limit(self) -> GameState:
-        """3-player game: Player 1 is exactly at the 20-cert limit."""
+        """3-player game: Player 1 is exactly at the 19-cert limit (rule 2.6.2.6)."""
         base = _ar_state(3)
         return dataclasses.replace(
             base,
-            player_certificates={"Player 1": 20, "Player 2": 0, "Player 3": 0},
+            player_certificates={"Player 1": 19, "Player 2": 0, "Player 3": 0},
             player_shares={"Player 1": {}, "Player 2": {}, "Player 3": {}},
             unsold_shares={"BY": 100},
             share_prices={"BY": 100},
@@ -402,7 +402,7 @@ class TestPaperLimit:
     def test_below_limit_buy_allowed(self) -> None:
         state = dataclasses.replace(
             self._state_at_limit(),
-            player_certificates={"Player 1": 19, "Player 2": 0, "Player 3": 0},
+            player_certificates={"Player 1": 18, "Player 2": 0, "Player 3": 0},
         )
         buy = BuyShareFromBank(player_id="Player 1", company_id="BY", percent=10)
         assert isinstance(buy.validate(state), Ok)
@@ -413,11 +413,11 @@ class TestPaperLimit:
         state = dataclasses.replace(
             base,
             player_shares={"Player 1": {"BY": 80}, "Player 2": {}, "Player 3": {}},
-            player_certificates={"Player 1": 20, "Player 2": 0, "Player 3": 0},
+            player_certificates={"Player 1": 19, "Player 2": 0, "Player 3": 0},
             unsold_shares={"BY": 20},
         )
-        # Limit should now be 21 (20 base + 1 bonus).
-        assert state.certificate_limit("Player 1") == 21
+        # Limit = 19 base + 1 bonus = 20.
+        assert state.certificate_limit("Player 1") == 20
         buy = BuyShareFromBank(player_id="Player 1", company_id="BY", percent=10)
         assert isinstance(buy.validate(state), Ok)
 
@@ -435,12 +435,12 @@ class TestPaperLimit:
             pool_shares={"BY": 0},
             player_certificates={"Player 1": 8, "Player 2": 1, "Player 3": 0},
         )
-        # Before sell: Player 1 at 80% → limit = 21.
-        assert state.certificate_limit("Player 1") == 21
+        # Before sell: Player 1 at 80% → limit = 19 base + 1 bonus = 20.
+        assert state.certificate_limit("Player 1") == 20
         sell = SellShares(player_id="Player 1", company_id="BY", percent=10)
         state = sell.apply(state)
-        # Now at 70% → limit drops back to 20.
-        assert state.certificate_limit("Player 1") == 20
+        # Now at 70% → limit drops back to 19.
+        assert state.certificate_limit("Player 1") == 19
 
     def test_nationalization_with_paper_limit_exceeded(self) -> None:
         """Edge: after nationalizing, player may be over their limit (no forced

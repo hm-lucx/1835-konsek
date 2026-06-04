@@ -60,11 +60,11 @@ def advance_or_phase(current: ORPhase) -> ORPhase:
 # advances to ``purchasing_tier`` and all trains of ``_SCRAP_ON_PURCHASE[tier]``
 # are forced off the board.
 #
-# Derived from locomotives.yml scrap_trigger values:
-#   tier-4 (5-loco) has scrap_trigger 3 → "3-locomotives" are tier 2
-#   tier-5 (6-loco) has scrap_trigger 4 → "4-locomotives" are tier 3
-#   tier-6 (6+6)    has scrap_trigger 5 → "5-locomotives" are tier 4
-_SCRAP_ON_PURCHASE: dict[int, int] = {4: 2, 5: 3, 6: 4}
+# Rule 5.5.4.14:
+#   First 4-Lok (tier 3): all 2-Loks (tier 1) scrapped
+#   First 6-Lok (tier 5): all 3-Loks (tier 2) scrapped
+# Note: 4+4-Lok / 6+6-Lok +variants are not yet modeled as separate tiers.
+_SCRAP_ON_PURCHASE: dict[int, int] = {3: 1, 5: 2}
 
 
 def scrap_tier_on_purchase(purchasing_tier: int) -> int | None:
@@ -72,5 +72,7 @@ def scrap_tier_on_purchase(purchasing_tier: int) -> int | None:
     return _SCRAP_ON_PURCHASE.get(purchasing_tier)
 
 
-# Locomotive purchase prices (from locomotives.yml).
-TRAIN_PRICES: dict[int, int] = {1: 120, 2: 200, 3: 300, 4: 400, 5: 500, 6: 600}
+# Locomotive purchase prices (rule Promotionstabellen / locomotives.yml).
+# Tier mapping: 1=2-Lok, 2=3-Lok, 3=4-Lok, 4=5-Lok, 5=6-Lok, 6=6+6-Lok
+# (+variants 2+2, 3+3, 4+4, 5+5 are not yet separate tiers)
+TRAIN_PRICES: dict[int, int] = {1: 80, 2: 180, 3: 360, 4: 500, 5: 600, 6: 720}

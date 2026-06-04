@@ -1,74 +1,75 @@
 # 1835 Konsek Aktiengesellschaften (Stock Companies)
-# 8 major German railway companies
+# 8 major German railway companies with corrected par prices and home cities (rule 3.3).
+# Capital = share_count × par_price (e.g. 10 × 92 M = 920 M for Bayern).
 aktiengesellschaften:
   - id: "BY"
     name: "Bayern"
     abbreviation: "BY"
     home_city: "München"
-    par_price: 100
+    par_price: 92
     share_count: 10
     token_color: "blue"
-    description: "Bavarian railway company"
-  
+    description: "Bavarian railway company; 10 × 92 M = 920 M total capital"
+
   - id: "SA"
     name: "Sachsen"
     abbreviation: "SA"
     home_city: "Leipzig"
-    par_price: 100
+    par_price: 88
     share_count: 10
     token_color: "green"
-    description: "Saxon railway company"
-  
+    description: "Saxon railway company; 10 × 88 M = 880 M total capital"
+
   - id: "BA"
     name: "Baden"
     abbreviation: "BA"
-    home_city: "Karlsruhe"
-    par_price: 100
+    home_city: "Mannheim-Ludwigshafen"
+    par_price: 84
     share_count: 10
     token_color: "red"
-    description: "Baden railway company"
-  
+    description: "Baden railway company; 10 × 84 M = 840 M total capital"
+
   - id: "WÜ"
     name: "Württemberg"
     abbreviation: "WÜ"
     home_city: "Stuttgart"
-    par_price: 100
+    par_price: 84
     share_count: 10
     token_color: "yellow"
-    description: "Württemberg railway company"
-  
+    description: "Württemberg railway company; 10 × 84 M = 840 M total capital"
+
   - id: "HE"
     name: "Hessen"
     abbreviation: "HE"
     home_city: "Frankfurt"
-    par_price: 100
+    par_price: 84
     share_count: 10
     token_color: "orange"
-    description: "Hessian railway company"
-  
+    description: "Hessian railway company; 10 × 84 M = 840 M total capital"
+
   - id: "MS"
-    name: "Mecklenburg-Strelitz"
+    name: "Mecklenburg-Schwerin"
     abbreviation: "MS"
-    home_city: "Neustrelitz"
-    par_price: 100
+    home_city: "Schwerin"
+    par_price: 80
     share_count: 10
     token_color: "purple"
-    description: "Mecklenburg-Strelitz railway company"
-  
+    description: "Mecklenburg-Schwerin railway company; 10 × 80 M = 800 M total capital"
+
   - id: "OL"
     name: "Oldenburg"
     abbreviation: "OL"
     home_city: "Oldenburg"
-    par_price: 100
+    par_price: 80
     share_count: 10
     token_color: "brown"
-    description: "Oldenburg railway company"
-  
+    description: "Oldenburg railway company; 10 × 80 M = 800 M total capital"
+
   - id: "PR"
     name: "Preußen"
     abbreviation: "PR"
     home_city: "Berlin"
-    par_price: 100
-    share_count: 10
+    par_price: 154
+    share_count: 4
     token_color: "black"
-    description: "Prussian railway company"
+    description: "Prussian railway company; 4 × 154 M = 616 M capital (special rules, chapter 4)"

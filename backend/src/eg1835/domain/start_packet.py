@@ -32,8 +32,8 @@ INITIAL_START_PACKET_ROWS: tuple[tuple[str, ...], ...] = (
     ("OB", "PF"),
 )
 
-# Certificate limit per player count (rule 2.6.2.6).
-BASE_CERT_LIMIT: dict[int, int] = {3: 20, 4: 16, 5: 13, 6: 11, 7: 10}
+# Certificate limit per player count (rule 2.6.2.6 / Spielvorbereitung table).
+BASE_CERT_LIMIT: dict[int, int] = {3: 19, 4: 15, 5: 12, 6: 11, 7: 9}
 
 
 def buyable_item_ids(rows: tuple[tuple[str, ...], ...]) -> frozenset[str]:

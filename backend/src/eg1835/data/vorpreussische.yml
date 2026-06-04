@@ -1,50 +1,51 @@
 # 1835 Konsek Vorpreussische Gesellschaften (Pre-Prussian Companies)
-# 6 pre-Prussian railway companies
+# 6 pre-Prussian railway companies with corrected purchase prices (rule 3.2).
+# Purchase price = Betriebskapital (operating capital) printed on the certificate.
 vorpreussische:
   - id: "BM"
     name: "Bergisch-Märkische"
     abbreviation: "BM"
     home_city: "Düsseldorf"
-    par_price: 100
+    par_price: 80
     share_count: 10
-    description: "Bergisch-Märkische railway company"
-  
+    description: "Bergisch-Märkische railway company; purchase price = operating capital 80 M"
+
   - id: "BP"
-    name: "Berlin-Potsdam"
+    name: "Berlin-Potsdamer"
     abbreviation: "BP"
     home_city: "Berlin"
-    par_price: 100
+    par_price: 170
     share_count: 10
-    description: "Berlin-Potsdam railway company"
-  
+    description: "Berlin-Potsdamer railway company; purchase price = operating capital 170 M; triggers Preussen opening"
+
   - id: "MD"
     name: "Magdeburger"
     abbreviation: "MD"
     home_city: "Magdeburg"
-    par_price: 100
+    par_price: 80
     share_count: 10
-    description: "Magdeburger railway company"
-  
+    description: "Magdeburger railway company; purchase price = operating capital 80 M"
+
   - id: "KM"
-    name: "Köln-Minden"
+    name: "Köln-Mindener"
     abbreviation: "KM"
-    home_city: "Köln"
-    par_price: 100
+    home_city: "Dortmund"
+    par_price: 160
     share_count: 10
-    description: "Köln-Minden railway company"
-  
+    description: "Köln-Mindener railway company; purchase price = operating capital 160 M"
+
   - id: "BS"
     name: "Berlin-Stettiner"
     abbreviation: "BS"
     home_city: "Berlin"
-    par_price: 100
+    par_price: 80
     share_count: 10
-    description: "Berlin-Stettiner railway company"
-  
+    description: "Berlin-Stettiner railway company; purchase price = operating capital 80 M"
+
   - id: "AK"
     name: "Altona-Kiel"
     abbreviation: "AK"
-    home_city: "Altona"
-    par_price: 100
+    home_city: "Hamburg"
+    par_price: 80
     share_count: 10
-    description: "Altona-Kiel railway company"
+    description: "Altona-Kiel railway company; purchase price = operating capital 80 M"
