@@ -1,0 +1,184 @@
+# 1835 Konsek Board Layout
+# Hexagonal grid using axial coordinates (q, r)
+board:
+  width: 14
+  height: 10
+  positions:
+    # Row 0
+    - q: 3
+      r: 0
+      tile_id: 1
+      name: "Hamburg"
+    - q: 5
+      r: 0
+      tile_id: 2
+      name: "Kiel"
+    - q: 8
+      r: 0
+      tile_id: 3
+      name: "Stettin"
+    - q: 11
+      r: 0
+      tile_id: 4
+      name: "Berlin"
+    # Row 1
+    - q: 2
+      r: 1
+      tile_id: 5
+      name: "Bremen"
+    - q: 5
+      r: 1
+      tile_id: 6
+      name: "Hannover"
+    - q: 8
+      r: 1
+      tile_id: 7
+      name: "Magdeburg"
+    - q: 11
+      r: 1
+      tile_id: 8
+      name: "Frankfurt/Oder"
+    # Row 2
+    - q: 1
+      r: 2
+      tile_id: 9
+      name: "Amsterdam"
+    - q: 4
+      r: 2
+      tile_id: 10
+      name: "Köln"
+    - q: 7
+      r: 2
+      tile_id: 11
+      name: "Kassel"
+    - q: 10
+      r: 2
+      tile_id: 12
+      name: "Halle"
+    # Row 3
+    - q: 2
+      r: 3
+      tile_id: 13
+      name: "Rheinland"
+    - q: 5
+      r: 3
+      tile_id: 14
+      name: "Wetzlar"
+    - q: 8
+      r: 3
+      tile_id: 15
+      name: "Erfurt"
+    - q: 11
+      r: 3
+      tile_id: 16
+      name: "Leipzig"
+    # Row 4
+    - q: 1
+      r: 4
+      tile_id: 17
+      name: "Aachen"
+    - q: 4
+      r: 4
+      tile_id: 18
+      name: "Bonn"
+    - q: 7
+      r: 4
+      tile_id: 19
+      name: "Frankfurt am Main"
+    - q: 10
+      r: 4
+      tile_id: 20
+      name: "Nürnberg"
+    - q: 13
+      r: 4
+      tile_id: 21
+      name: "Dresden"
+    # Row 5
+    - q: 2
+      r: 5
+      tile_id: 22
+      name: "Trier"
+    - q: 5
+      r: 5
+      tile_id: 23
+      name: "Würzburg"
+    - q: 8
+      r: 5
+      tile_id: 24
+      name: "Bamberg"
+    - q: 11
+      r: 5
+      tile_id: 25
+      name: "Chemnitz"
+    # Row 6
+    - q: 1
+      r: 6
+      tile_id: 26
+      name: "Saarbrücken"
+    - q: 4
+      r: 6
+      tile_id: 27
+      name: "Mannheim"
+    - q: 7
+      r: 6
+      tile_id: 28
+      name: "Darmstadt"
+    - q: 10
+      r: 6
+      tile_id: 29
+      name: "Regensburg"
+    - q: 13
+      r: 6
+      tile_id: 30
+      name: "Pilsen"
+    # Row 7
+    - q: 2
+      r: 7
+      tile_id: 31
+      name: "Straßburg"
+    - q: 5
+      r: 7
+      tile_id: 32
+      name: "Heidelberg"
+    - q: 8
+      r: 7
+      tile_id: 33
+      name: "Nürtingen"
+    - q: 11
+      r: 7
+      tile_id: 34
+      name: "Passau"
+    # Row 8
+    - q: 3
+      r: 8
+      tile_id: 35
+      name: "Konstanz"
+    - q: 6
+      r: 8
+      tile_id: 36
+      name: "Stuttgart"
+    - q: 9
+      r: 8
+      tile_id: 37
+      name: "München"
+    - q: 12
+      r: 8
+      tile_id: 38
+      name: "Salzburg"
+    # Row 9
+    - q: 4
+      r: 9
+      tile_id: 39
+      name: "Basel"
+    - q: 7
+      r: 9
+      tile_id: 40
+      name: "Ulm"
+    - q: 10
+      r: 9
+      tile_id: 41
+      name: "Augsburg"
+    - q: 13
+      r: 9
+      tile_id: 42
+      name: "Wien"
