@@ -16,6 +16,7 @@ from .models import (
     Tile,
     VorpreussischeGesellschaft,
 )
+from .routing import Edge, RouteNetwork, Station
 from .tile_system import TileSystem
 
 
@@ -106,6 +107,44 @@ class GameDataLoader:
         data = self._load_yaml("promotions.yml")
         return TileSystem(data)
 
+    def load_route_network(self) -> RouteNetwork:
+        """Load the Phase 3 route network (stations, junctions, edges)."""
+        data = self._load_yaml("route_network.yml")
+        network_data = data.get("network", {})
+        network = RouteNetwork()
+
+        for entry in network_data.get("stations", []):
+            network.add_station(
+                Station(
+                    id=entry["id"],
+                    name=entry.get("name", entry["id"]),
+                    revenue=dict(entry.get("revenue", {})),
+                    is_offboard=bool(entry.get("offboard", False)),
+                    blocked=bool(entry.get("blocked", False)),
+                    available_from_phase=int(entry.get("available_from_phase", 1)),
+                    ferry_revenue=(
+                        dict(entry["ferry_revenue"])
+                        if entry.get("ferry_revenue") is not None
+                        else None
+                    ),
+                )
+            )
+
+        for entry in network_data.get("junctions", []):
+            network.add_junction(entry["id"], entry.get("name", ""))
+
+        for entry in network_data.get("edges", []):
+            network.add_edge(
+                Edge(
+                    id=entry["id"],
+                    a=entry["a"],
+                    b=entry["b"],
+                    ferry=bool(entry.get("ferry", False)),
+                )
+            )
+
+        return network
+
     def load_all(self) -> dict[str, Any]:
         """Load all game data."""
         return {
@@ -118,4 +157,5 @@ class GameDataLoader:
             "player_boards": self.load_player_boards(),
             "board": self.load_board(),
             "tile_system": self.load_tile_system(),
+            "route_network": self.load_route_network(),
         }

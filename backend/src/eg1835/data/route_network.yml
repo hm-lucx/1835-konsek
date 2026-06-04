@@ -1,0 +1,94 @@
+# 1835 Konsek route network (Phase 3)
+#
+# A connectivity graph over a real 1835 play area: stations are revenue
+# locations, edges are track segments, and a junction models a branch on a
+# green tile that carries no station (rule 5.5.3.10). Station values are given
+# per game phase (1-3) and grow as the underlying tiles are upgraded.
+#
+# Special locations:
+#   * hamburg  -- off-board; the brown value rises 50 -> 60 across the ferry
+#                 (rule 5.5.3.11.3).
+#   * elsass   -- off-board "Elsaß-Lothringen", only reachable from phase 2.
+#   * j_fulda  -- a green-tile branch without a station.
+network:
+  stations:
+    # --- North ---
+    - id: hamburg
+      name: "Hamburg"
+      offboard: true
+      revenue: {1: 30, 2: 40, 3: 50}
+      ferry_revenue: {3: 60}
+    - id: bremen
+      name: "Bremen"
+      revenue: {1: 20, 2: 30, 3: 40}
+    - id: oldenburg
+      name: "Oldenburg"
+      revenue: {1: 10, 2: 20, 3: 30}
+    - id: hannover
+      name: "Hannover"
+      revenue: {1: 20, 2: 30, 3: 40}
+    - id: berlin
+      name: "Berlin"
+      revenue: {1: 30, 2: 50, 3: 70}
+    - id: magdeburg
+      name: "Magdeburg"
+      revenue: {1: 20, 2: 30, 3: 40}
+    - id: koeln
+      name: "Köln"
+      revenue: {1: 20, 2: 30, 3: 40}
+    # --- South ---
+    - id: muenchen
+      name: "München"
+      revenue: {1: 30, 2: 40, 3: 50}
+    - id: augsburg
+      name: "Augsburg"
+      revenue: {1: 10, 2: 20, 3: 30}
+    - id: nuernberg
+      name: "Nürnberg"
+      revenue: {1: 20, 2: 40, 3: 50}
+    - id: regensburg
+      name: "Regensburg"
+      revenue: {1: 20, 2: 30, 3: 40}
+    - id: passau
+      name: "Passau"
+      revenue: {1: 10, 2: 20, 3: 30}
+    - id: wuerzburg
+      name: "Würzburg"
+      revenue: {1: 20, 2: 30, 3: 40}
+    - id: stuttgart
+      name: "Stuttgart"
+      revenue: {1: 20, 2: 30, 3: 40}
+    - id: strassburg
+      name: "Straßburg"
+      revenue: {1: 20, 2: 30, 3: 40}
+    # --- Off-board connection, opens in phase 2 ---
+    - id: elsass
+      name: "Elsaß-Lothringen"
+      offboard: true
+      available_from_phase: 2
+      revenue: {2: 40, 3: 60}
+  junctions:
+    - id: j_fulda
+      name: "Abzweig Fulda"
+  edges:
+    # North
+    - {id: oldenburg_bremen, a: oldenburg, b: bremen}
+    - {id: bremen_hamburg, a: bremen, b: hamburg}
+    - {id: bremen_hannover, a: bremen, b: hannover}
+    - {id: hannover_berlin, a: hannover, b: berlin}
+    - {id: hannover_magdeburg, a: hannover, b: magdeburg}
+    - {id: berlin_magdeburg, a: berlin, b: magdeburg}
+    - {id: hannover_koeln, a: hannover, b: koeln}
+    # South
+    - {id: muenchen_augsburg, a: muenchen, b: augsburg}
+    - {id: muenchen_passau, a: muenchen, b: passau}
+    - {id: passau_regensburg, a: passau, b: regensburg}
+    - {id: regensburg_nuernberg, a: regensburg, b: nuernberg}
+    - {id: nuernberg_wuerzburg, a: nuernberg, b: wuerzburg}
+    - {id: augsburg_stuttgart, a: augsburg, b: stuttgart}
+    - {id: stuttgart_strassburg, a: stuttgart, b: strassburg}
+    # Off-board ferry / Elsaß-Lothringen
+    - {id: strassburg_elsass, a: strassburg, b: elsass}
+    # Branch on a green tile (no station) linking south and west
+    - {id: wuerzburg_fulda, a: wuerzburg, b: j_fulda}
+    - {id: fulda_koeln, a: j_fulda, b: koeln}
