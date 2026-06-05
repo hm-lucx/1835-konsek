@@ -25,6 +25,18 @@ class EventStore:
         await session.flush()
         return user
 
+    async def get_user_by_email(
+        self, session: AsyncSession, email: str
+    ) -> User | None:
+        return await session.scalar(select(User).where(User.email == email))
+
+    async def get_or_create_user(self, session: AsyncSession, email: str) -> User:
+        """Return the existing user for ``email`` or insert a new one."""
+        user = await self.get_user_by_email(session, email)
+        if user is not None:
+            return user
+        return await self.create_user(session, email)
+
     async def create_game(self, session: AsyncSession, num_players: int) -> Game:
         game = Game(num_players=num_players, status="active")
         session.add(game)

@@ -3,9 +3,11 @@ import React, { useState } from 'react'
 import { createGame } from './api/client'
 import type { Action } from './api/types'
 import { ActionBar } from './components/ActionBar'
+import { ActionErrorModal } from './components/ActionErrorModal'
 import { CompanyPanel } from './components/CompanyPanel'
 import { GameLog } from './components/GameLog'
 import { HexMap } from './components/HexMap'
+import { PhaseGuide } from './components/PhaseGuide'
 import { PlayerPanel } from './components/PlayerPanel'
 import { StockMarket } from './components/StockMarket'
 import { TileTray } from './components/TileTray'
@@ -15,6 +17,9 @@ import './App.css'
 
 function App(): React.ReactElement {
   const { gameId, view, legalActions, error, connect, submit } = useGameStore()
+  const setError = useGameStore((s) => s.setError)
+  const actionError = useGameStore((s) => s.actionError)
+  const dismissActionError = useGameStore((s) => s.dismissActionError)
   const [armedMapAction, setArmedMapAction] = useState<string | null>(null)
   const [selectedTileId, setSelectedTileId] = useState<number | null>(null)
   const [starting, setStarting] = useState(false)
@@ -24,6 +29,8 @@ function App(): React.ReactElement {
     try {
       const id = await createGame(3, 'solo@example.com')
       await connect(id, 'Player 1')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setStarting(false)
     }
@@ -66,6 +73,8 @@ function App(): React.ReactElement {
         </div>
       )}
 
+      {view && <PhaseGuide view={view} armedMapAction={armedMapAction} selectedTileId={selectedTileId} />}
+
       {view ? (
         <main className="app__layout">
           <section className="app__map">
@@ -102,6 +111,14 @@ function App(): React.ReactElement {
         </main>
       ) : (
         <p className="app__hint">Starte ein Spiel, um das Brett zu sehen.</p>
+      )}
+
+      {actionError && (
+        <ActionErrorModal
+          message={actionError}
+          legalActions={legalActions}
+          onClose={dismissActionError}
+        />
       )}
     </div>
   )

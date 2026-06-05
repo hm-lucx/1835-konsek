@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from eg1835.application.game_service import GameService, TurnError
-from eg1835.domain.actions import BuyStartItem
+from eg1835.domain.actions import BuyStartItem, Pass
 from eg1835.infrastructure.db import Base, create_session_factory
 
 
@@ -68,9 +68,24 @@ class TestStartPacketToOperatingRound:
                 cast("int", view["sequence"]),
             )
 
+        # The packet is empty, but the stock round continues so the new AG
+        # shares can be traded before any company operates (rule 2.5.2).
         view = await service.get_view(game_id)
-        # The packet is empty → the first operating round has begun with a
-        # concrete operating company and a resolvable actor.
+        assert view["phase"] == "ar"
+
+        # Once all players pass the stock round ends and the first operating
+        # round begins with a concrete operating company and a resolvable actor.
+        for _ in range(20):  # safety bound
+            view = await service.get_view(game_id)
+            if view["phase"] != "ar":
+                break
+            actor = view["current_actor"]
+            assert isinstance(actor, str)
+            await service.submit_action(
+                game_id, actor, Pass(player_id=actor), cast("int", view["sequence"])
+            )
+
+        view = await service.get_view(game_id)
         assert view["phase"] == "or"
         assert view["active_company_id"] is not None
         assert view["current_actor"] is not None
