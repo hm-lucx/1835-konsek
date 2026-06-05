@@ -83,6 +83,18 @@ class Event(Base):
     )
 
 
+class MagicToken(Base):
+    """One-time login token for passwordless (magic-link) auth (Phase 10)."""
+
+    __tablename__ = "magic_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(320), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+
 class Snapshot(Base):
     __tablename__ = "snapshots"
     __table_args__ = (

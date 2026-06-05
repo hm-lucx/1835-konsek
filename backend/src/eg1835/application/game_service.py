@@ -23,6 +23,7 @@ from ..domain.serialization import (
     load_snapshot,
 )
 from ..infrastructure.repository import EventStore
+from .notifier import Notifier, NullNotifier
 from .view import build_view, legal_actions
 
 # A snapshot is written every this-many events to keep replay cheap (issue #9).
@@ -43,6 +44,10 @@ class ConflictError(GameServiceError):
 
 class TurnError(GameServiceError):
     """The submitting player is not the one allowed to act (HTTP 403)."""
+
+
+class GamePausedError(GameServiceError):
+    """Actions are rejected while a game is paused (HTTP 409)."""
 
 
 class ActionValidationError(GameServiceError):
@@ -68,9 +73,11 @@ class GameService:
         self,
         session_factory: async_sessionmaker[AsyncSession],
         store: EventStore | None = None,
+        notifier: Notifier | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._store = store or EventStore()
+        self._notifier = notifier or NullNotifier()
 
     # ------------------------------------------------------------------ #
     # Game lifecycle                                                       #
@@ -94,6 +101,58 @@ class GameService:
                 await self._store.add_player(session, game_id, user.id, seat)
             except IntegrityError as exc:  # seat already taken
                 raise ConflictError(f"Seat {seat} is already taken") from exc
+
+    async def set_status(self, game_id: int, status: str) -> None:
+        """Pause / resume a game by setting its status (rule: lobby management)."""
+        async with self._session_factory() as session, session.begin():
+            game = await self._store.get_game(session, game_id)
+            if game is None:
+                raise GameNotFoundError(f"Game {game_id} not found")
+            await self._store.set_game_status(session, game_id, status)
+
+    async def list_games(self) -> list[dict[str, object]]:
+        """Lobby view: every game with its seat occupancy."""
+        async with self._session_factory() as session:
+            games = await self._store.list_games(session)
+            result: list[dict[str, object]] = []
+            for game in games:
+                players = await self._store.list_players(session, game.id)
+                result.append(
+                    {
+                        "game_id": game.id,
+                        "status": game.status,
+                        "num_players": game.num_players,
+                        "seats_taken": len(players),
+                        "open": len(players) < game.num_players,
+                    }
+                )
+            return result
+
+    async def export_game(self, game_id: int) -> dict[str, object]:
+        """Serialise a game's metadata and full event log (replayable save)."""
+        async with self._session_factory() as session:
+            game = await self._store.get_game(session, game_id)
+            if game is None:
+                raise GameNotFoundError(f"Game {game_id} not found")
+            events = await self._store.load_events(session, game_id)
+            players = await self._store.list_players(session, game_id)
+            return {
+                "game": {
+                    "id": game.id,
+                    "status": game.status,
+                    "num_players": game.num_players,
+                },
+                "players": [{"seat": p.seat, "user_id": p.user_id} for p in players],
+                "events": [
+                    {
+                        "sequence": e.sequence,
+                        "type": e.type,
+                        "player_id": e.player_id,
+                        "payload": e.payload,
+                    }
+                    for e in events
+                ],
+            }
 
     # ------------------------------------------------------------------ #
     # Replay                                                               #
@@ -158,6 +217,12 @@ class GameService:
         new_seq = expected_seq + 1
         try:
             async with self._session_factory() as session, session.begin():
+                game = await self._store.get_game(session, game_id)
+                if game is None:
+                    raise GameNotFoundError(f"Game {game_id} not found")
+                if game.status == "paused":
+                    raise GamePausedError(f"Game {game_id} is paused")
+
                 current = await self._store.max_sequence(session, game_id)
                 if expected_seq != current:
                     raise ConflictError(
@@ -188,11 +253,17 @@ class GameService:
                     await self._store.save_snapshot(
                         session, game_id, new_seq, dump_snapshot(new_state)
                     )
-                return SubmitResult(sequence=new_seq, state=new_state)
+                result_obj = SubmitResult(sequence=new_seq, state=new_state)
         except IntegrityError as exc:
             raise ConflictError(
                 f"Sequence {new_seq} already exists for game {game_id}"
             ) from exc
+
+        # Notify the next player it is their turn (after a successful commit).
+        next_actor = current_actor(result_obj.state)
+        if next_actor is not None:
+            self._notifier.turn_changed(game_id, next_actor, result_obj.sequence)
+        return result_obj
 
     # ------------------------------------------------------------------ #
     # Frontend projections (Phase 9)                                       #
