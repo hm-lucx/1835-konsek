@@ -94,15 +94,3 @@ postgres    Speicherung aller Spielstände            → :5432
 | Pause / Fortsetzen | Partie einfrieren und wieder aktivieren |
 | Echtzeit | WebSocket-Verbindung für Live-Updates |
 | Magic-Link | Passwortlosen Login-Link per E-Mail anfordern |
-
----
-
-## Häufige Befehle
-
-```bash
-make test      # Tests ausführen
-make lint      # Code-Qualität prüfen
-make format    # Code automatisch formatieren
-make migrate   # Datenbankstruktur aktualisieren
-make clean     # Alle Container und Daten entfernen
-```
