@@ -68,12 +68,14 @@ class TestOptimisticLocking:
         self, file_service: GameService
     ) -> None:
         game_id = await file_service.create_game(3)
+        # Same player races itself for sequence 1 (turn order is independent of
+        # the optimistic-locking check exercised here).
         actions = (
             file_service.submit_action(
                 game_id, "Player 1", BuyStartItem(player_id="Player 1", item_id="NF"), 0
             ),
             file_service.submit_action(
-                game_id, "Player 2", BuyStartItem(player_id="Player 2", item_id="LD"), 0
+                game_id, "Player 1", BuyStartItem(player_id="Player 1", item_id="LD"), 0
             ),
         )
         results = await asyncio.gather(*actions, return_exceptions=True)

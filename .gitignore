@@ -46,7 +46,8 @@ frontend/vite.config.js
 frontend/vite.config.d.ts
 frontend/test-results/
 frontend/playwright-report/
-e2e.db
+# SQLite dev/test databases
+*.db
 
 # Backend
 backend/.env

@@ -18,6 +18,7 @@ from typing import Any
 from ..domain.fsm import TRAIN_SPECS
 from ..domain.game_state import GameState
 from ..domain.loader import GameDataLoader
+from ..domain.or_flow import current_actor
 from ..domain.serialization import snake_name
 from ..domain.start_packet import START_PACKET_ITEMS, buyable_item_ids
 
@@ -46,9 +47,12 @@ def _board_view(state: GameState) -> dict[str, Any]:
     for key, pos in board.positions.items():
         positions[key] = {
             "coordinate": {"q": pos.coordinate.q, "r": pos.coordinate.r},
-            "tile_id": pos.tile_id,
+            # A placed tile overrides the printed base tile id (rule 5.5.1).
+            "tile_id": state.placed_tiles.get(key, pos.tile_id),
             "location_name": pos.location_name,
-            "stations": [],  # placed-station tracking is deferred
+            "stations": [
+                {"company_id": cid} for cid in state.placed_stations.get(key, ())
+            ],
         }
     return {"width": board.width, "height": board.height, "positions": positions}
 
@@ -130,6 +134,7 @@ def build_view(state: GameState, sequence: int) -> dict[str, Any]:
         "or_phase": state.or_phase.value if state.or_phase is not None else None,
         "colored_phase": state.colored_phase,
         "active_company_id": state.active_company_id,
+        "current_actor": current_actor(state),
         "game_over": state.game_over,
         "bank_balance": state.bank_balance,
         "train_prices": dict(TRAIN_PRICE_BY_NAME),

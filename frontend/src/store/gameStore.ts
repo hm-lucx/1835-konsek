@@ -51,10 +51,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameId, playerId } = get()
     if (gameId === null) return
     try {
-      const [view, legalActions] = await Promise.all([
-        getView(gameId),
-        getLegalActions(gameId, playerId),
-      ])
+      const view = await getView(gameId)
+      // Solo hot-seat: act as whoever the server says is on turn; turn order is
+      // enforced server-side, so legal actions are fetched for that actor.
+      const actor = view.current_actor ?? playerId
+      const legalActions = await getLegalActions(gameId, actor)
       set({ view, legalActions, error: null })
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) })
@@ -64,8 +65,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   submit: async (action) => {
     const { gameId, playerId, view } = get()
     if (gameId === null || view === null) return
+    const actor = view.current_actor ?? playerId
     try {
-      await submitAction(gameId, playerId, view.sequence, action)
+      await submitAction(gameId, actor, view.sequence, action)
       // The broadcast will trigger refresh(); refresh immediately too so the
       // acting client updates without waiting for the round-trip frame.
       await get().refresh()

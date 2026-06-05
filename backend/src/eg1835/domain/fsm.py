@@ -116,6 +116,21 @@ def tier_to_train_id(tier: int) -> str | None:
     return TIER_TRAIN.get(tier)
 
 
+def train_reaches(train_id: str) -> list[int]:
+    """Locomotive reach(es) for routing (rule 5.5.3.4).
+
+    A "+"-variant is two engines, each with the base reach: "2+2" → [2, 2],
+    "6+6" → [6, 6]; a plain train is a single engine: "3" → [3].
+    """
+    return [int(part) for part in train_id.split("+")]
+
+
+def tier_reaches(tier: int) -> list[int]:
+    """Reach(es) for an integer-tier locomotive (see :func:`train_reaches`)."""
+    train_id = tier_to_train_id(tier)
+    return train_reaches(train_id) if train_id is not None else []
+
+
 # ---------------------------------------------------------------------------
 # Phase-change logic on locomotive purchases (rules 5.2, 5.5.4.14)
 # ---------------------------------------------------------------------------

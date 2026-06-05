@@ -77,7 +77,9 @@ from .fsm import (
     train_id_to_tier,
     train_limit_for_phase,
 )
+from .game_end import pay_company_from_bank, pay_player_from_bank
 from .game_state import GameState
+from .or_revenue import company_revenue
 from .result import Err, Ok
 from .share_price import step_down, step_up
 from .start_packet import (
@@ -1147,7 +1149,11 @@ class LayTile:
             **state.tiles_laid_this_turn,
             company_id: state.tiles_laid_this_turn.get(company_id, 0) + 1,
         }
-        new_state = dataclasses.replace(state, tiles_laid_this_turn=new_counts)
+        new_state = dataclasses.replace(
+            state,
+            tiles_laid_this_turn=new_counts,
+            placed_tiles={**state.placed_tiles, f"{self.q},{self.r}": self.tile_id},
+        )
         if self.field_id is not None:
             new_state = register_built_field(new_state, self.field_id)
         return new_state
@@ -1192,7 +1198,11 @@ class UpgradeTile:
             **state.tiles_laid_this_turn,
             company_id: state.tiles_laid_this_turn.get(company_id, 0) + 1,
         }
-        return dataclasses.replace(state, tiles_laid_this_turn=new_counts)
+        return dataclasses.replace(
+            state,
+            tiles_laid_this_turn=new_counts,
+            placed_tiles={**state.placed_tiles, f"{self.q},{self.r}": self.tile_id},
+        )
 
 
 # Private-railway build abilities (NF, OB, PF-build) live in
@@ -1261,10 +1271,14 @@ class PlaceStation:
             **state.stations_built_this_turn,
             self.company_id: state.stations_built_this_turn.get(self.company_id, 0) + 1,
         }
+        key = f"{self.q},{self.r}"
+        existing = state.placed_stations.get(key, ())
+        new_stations = {**state.placed_stations, key: (*existing, self.company_id)}
         return dataclasses.replace(
             state,
             company_cash=new_company_cash,
             stations_built_this_turn=new_counts,
+            placed_stations=new_stations,
             or_phase=advance_or_phase(ORPhase.STATION),
         )
 
@@ -1287,7 +1301,7 @@ class RunTrains:
 
     player_id: PlayerId
     company_id: str
-    route_values: list[int]  # revenue per route
+    route_values: list[int] = dataclasses.field(default_factory=list)  # legacy override
 
     def validate(self, state: GameState) -> ValidateResult:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
@@ -1296,7 +1310,16 @@ class RunTrains:
         return _require_or_phase(state, ORPhase.RUN, rule="5.5.3")
 
     def apply(self, state: GameState) -> GameState:
-        return dataclasses.replace(state, or_phase=advance_or_phase(ORPhase.RUN))
+        # Revenue is computed from the company's stations + trains via the
+        # routing engine (rule 5.5.3); ``route_values`` is only a legacy fallback
+        # when the network does not yet cover the company's cities.
+        computed = company_revenue(state, self.company_id)
+        revenue = computed if computed > 0 else sum(self.route_values)
+        return dataclasses.replace(
+            state,
+            last_run_revenue={**state.last_run_revenue, self.company_id: revenue},
+            or_phase=advance_or_phase(ORPhase.RUN),
+        )
 
 
 @dataclass(frozen=True)
@@ -1311,7 +1334,7 @@ class DeclareDividend:
 
     player_id: PlayerId
     company_id: str
-    amount: int
+    amount: int = 0  # 0 → use the revenue computed by RunTrains
 
     def validate(self, state: GameState) -> ValidateResult:
         result = _require_loop_phase(state, GameLoopPhase.OR, rule="5.4")
@@ -1331,31 +1354,30 @@ class DeclareDividend:
         return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
-        new_cash = dict(state.cash_per_player)
+        revenue = self.amount if self.amount > 0 else state.last_run_revenue.get(
+            self.company_id, 0
+        )
+        # Dividends are paid by the bank to each shareholder (rule 5.5.3.11);
+        # draining the bank schedules the game end (rule 6.1).
+        new_state = state
         distributed = 0
         for player, shares in state.player_shares.items():
             pct = shares.get(self.company_id, 0)
             if pct > 0:
-                share_amount = self.amount * pct // 100
-                new_cash[player] = new_cash.get(player, 0) + share_amount
+                share_amount = revenue * pct // 100
+                new_state = pay_player_from_bank(new_state, player, share_amount)
                 distributed += share_amount
 
-        # Pool / unsold / rounding remainder goes to the company treasury.
-        remainder = self.amount - distributed
-        new_company_cash = {
-            **state.company_cash,
-            self.company_id: state.company_cash.get(self.company_id, 0) + remainder,
-        }
+        # The portion for pool / unsold / company-held shares goes to the treasury.
+        new_state = pay_company_from_bank(new_state, self.company_id, revenue - distributed)
 
         # Payout moves the price one field up (rule 5.5.3.12).
-        new_prices = dict(state.share_prices)
+        new_prices = dict(new_state.share_prices)
         if self.company_id in new_prices:
             new_prices[self.company_id] = step_up(new_prices[self.company_id])
 
         return dataclasses.replace(
-            state,
-            cash_per_player=new_cash,
-            company_cash=new_company_cash,
+            new_state,
             share_prices=new_prices,
             or_phase=advance_or_phase(ORPhase.DIVIDEND_DECISION),
         )
@@ -1381,26 +1403,25 @@ class WithholdDividend:
         return _require_or_phase(state, ORPhase.DIVIDEND_DECISION, rule="5.5.3.11.5")
 
     def apply(self, state: GameState) -> GameState:
+        revenue = self.amount if self.amount > 0 else state.last_run_revenue.get(
+            self.company_id, 0
+        )
         # Saved revenue first repays any outstanding bank debt (rule 5.5.4.13);
-        # the rest is added to the treasury.
+        # the rest is paid by the bank into the treasury.
         debt = state.company_debt.get(self.company_id, 0)
-        repaid = min(debt, self.amount)
-        to_treasury = self.amount - repaid
-        new_company_cash = {
-            **state.company_cash,
-            self.company_id: state.company_cash.get(self.company_id, 0) + to_treasury,
-        }
-        new_debt = {**state.company_debt, self.company_id: debt - repaid}
+        repaid = min(debt, revenue)
+        new_state = dataclasses.replace(
+            state, company_debt={**state.company_debt, self.company_id: debt - repaid}
+        )
+        new_state = pay_company_from_bank(new_state, self.company_id, revenue - repaid)
 
         # Saving moves the price one field down (rule 5.5.3.12).
-        new_prices = dict(state.share_prices)
+        new_prices = dict(new_state.share_prices)
         if self.company_id in new_prices:
             new_prices[self.company_id] = step_down(new_prices[self.company_id])
 
         return dataclasses.replace(
-            state,
-            company_cash=new_company_cash,
-            company_debt=new_debt,
+            new_state,
             share_prices=new_prices,
             or_phase=advance_or_phase(ORPhase.DIVIDEND_DECISION),
         )
@@ -1772,4 +1793,11 @@ class ChooseBadenHomeStation:
         return Ok(None)
 
     def apply(self, state: GameState) -> GameState:
-        return dataclasses.replace(state, baden_home_chosen=True)
+        key = f"{self.q},{self.r}"
+        existing = state.placed_stations.get(key, ())
+        return dataclasses.replace(
+            state,
+            baden_home_chosen=True,
+            home_fields={**state.home_fields, "BA": key},
+            placed_stations={**state.placed_stations, key: (*existing, "BA")},
+        )

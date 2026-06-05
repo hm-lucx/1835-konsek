@@ -16,6 +16,7 @@ from ..application.game_service import (
     ConflictError,
     GameNotFoundError,
     GameService,
+    TurnError,
 )
 from ..domain.serialization import action_from_payload, state_to_jsonable
 from ..infrastructure.db import Base, create_engine, create_session_factory
@@ -70,6 +71,8 @@ def _build_router(app: FastAPI) -> APIRouter:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except ConflictError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except TurnError as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
         except ActionValidationError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
