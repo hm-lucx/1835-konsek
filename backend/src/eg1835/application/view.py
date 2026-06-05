@@ -69,6 +69,9 @@ def _tiles_view() -> dict[str, Any]:
             "color": tile.color,
             "name": tile.name,
             "cities": tile.cities,
+            "value": tile.value,
+            "count": tile.count,
+            "label": tile.label,
         }
         for tile in tiles.values()
     }

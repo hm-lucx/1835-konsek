@@ -7,6 +7,8 @@ import React, { useState } from 'react'
 
 import type { BoardPosition, GameView, Terrain } from '../api/types'
 import { TILE_COLORS } from '../constants'
+import { hasTileGeometry } from '../tiles/tileGeometry'
+import { TileGraphic } from './TileGraphic'
 
 const HEX_RADIUS = 26
 const H_SPACING = 39 // 1.5 * radius for flat-top columns
@@ -133,6 +135,11 @@ export function HexMap({
               stroke="#6b6b52"
               strokeWidth={clickable && isHovered ? 2.5 : 0.8}
             />
+
+            {/* Placed rail tile: draw its real track geometry (and colour). */}
+            {pos.tile_id > 0 && hasTileGeometry(pos.tile_id) && (
+              <TileGraphic tileId={pos.tile_id} radius={HEX_RADIUS} cx={cx} cy={cy} />
+            )}
 
             {/* Mountain build-cost triangle. */}
             {pos.terrain === 'mountain' && (

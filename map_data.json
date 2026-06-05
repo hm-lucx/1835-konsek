@@ -1,0 +1,84 @@
+{
+  "$schema_note": "Datenmodell der 1835-Spielkarte (Hans im Glueck, (c) 1990). Quelle: fotografiertes Spielbrett. Koordinaten als <Reihe A-P><Spalte 1-21>. Werte mit 'uncertain': true sind im Foto schwer lesbar und MUESSEN gegen das Original geprueft werden.",
+  "meta": {
+    "title": "1835",
+    "year_label": "1835",
+    "publisher": "Hans im Glueck",
+    "copyright": "1990",
+    "grid": {
+      "type": "hex",
+      "orientation": "flat-top",
+      "rows": ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P"],
+      "cols_min": 1,
+      "cols_max": 21,
+      "note": "Spaltenbeschriftung am unteren Rand laeuft sichtbar 1..21; linke Randmarkierung 1,2,3 bei Reihe L/M. Achsenkreuz (Aequator-Linie) verlaeuft zwischen Reihe H und I."
+    },
+    "terrain_costs_note": "70M = Gebirge/teures Gelaende (Dreieck-Symbol), 50M = mittleres Gelaende an Fluessen/Staedten. Werte stehen als BauKosten an den jeweiligen Feldern."
+  },
+  "legend": {
+    "Y": "gelber Stadt-/Vorkonzessions-Marker",
+    "XX": "Bahnhof/Token-Platz (Doppelkreis)",
+    "triangle_70M": "Gebirgshex, Baukosten 70M",
+    "50M": "Baukosten 50M",
+    "colored_areas": {
+      "red": "Nachbarstaaten / nicht-preussisches Gebiet (z.B. Elsass-Lothringen, Oberschlesien, Ostpreussen)",
+      "blue": "Wasser / Kueste / Ostsee & Nordsee",
+      "green": "Ausland (Niederlande/Belgien/Frankreich/Oesterreich-Boehmen Richtung Osten)"
+    }
+  },
+  "cities": [
+    { "coord": "C11", "name": "Hamburg", "labels": ["HH","6"], "value": "50M", "tokens": "XX", "type": "major_city" },
+    { "coord": "C12", "name": "Schwerin", "marker": "M", "type": "city" },
+    { "coord": "C21", "name": "Ostpreussen", "offboard_values": [20,30,40], "type": "offboard", "uncertain": true },
+    { "coord": "D9", "name": "Oldenburg", "marker": "O", "type": "city" },
+    { "coord": "D10", "name": "Bremen", "value": "50M", "type": "city" },
+    { "coord": "E18", "name": "Berlin", "labels": ["B","5","2"], "marker": "50", "type": "major_city", "uncertain": true },
+    { "coord": "F8", "name": "Hannover", "type": "city" },
+    { "coord": "F10", "name": "Braunschweig", "type": "city" },
+    { "coord": "F13", "name": "Magdeburg", "label": "3", "type": "city" },
+    { "coord": "G5", "name": "Essen / Duisburg", "value": "50M", "tokens": "XX", "type": "major_city" },
+    { "coord": "G7", "name": "Dortmund", "label": "4", "type": "city" },
+    { "coord": "H4", "name": "Duesseldorf", "marker": "Y", "type": "city" },
+    { "coord": "H15", "name": "Leipzig", "marker": "S", "type": "city" },
+    { "coord": "H20", "name": "Dresden", "marker": "Y", "type": "city" },
+    { "coord": "I5", "name": "Koeln", "marker": "Y", "value": "50M", "type": "city" },
+    { "coord": "I21", "name": "Oberschlesien", "offboard_values": [20,30,40], "type": "offboard", "uncertain": true },
+    { "coord": "J8", "name": "Mainz / Wiesbaden", "value": "50M", "tokens": "XX", "type": "major_city" },
+    { "coord": "J9", "name": "Frankfurt", "labels": ["H"], "value": "50M", "marker": "Y", "type": "major_city" },
+    { "coord": "L7", "name": "Ludwigshafen / Mannheim", "marker": "B", "tokens": "XX", "type": "major_city" },
+    { "coord": "L14", "name": "Fuerth / Nuernberg", "tokens": "XX", "marker": "50", "type": "major_city", "uncertain": true },
+    { "coord": "M9", "name": "Stuttgart", "marker": "W", "type": "city" },
+    { "coord": "M16", "name": "Ost Bayern", "type": "region_label", "uncertain": true },
+    { "coord": "N12", "name": "Augsburg", "type": "city" },
+    { "coord": "O14", "name": "Muenchen", "marker": "B", "label": "Y", "type": "city", "uncertain": true },
+    { "coord": "O5", "name": "Freiburg", "type": "city" },
+    { "coord": "B7", "name": "Kiel", "type": "city" }
+  ],
+  "offboard_regions": [
+    { "coord_area": "M2", "name": "Elsass-Lothringen", "values": [50,60], "color": "red", "uncertain": true },
+    { "coord_area": "C21", "name": "Ostpreussen", "values": [20,30,40], "color": "red" },
+    { "coord_area": "I21", "name": "Oberschlesien", "values": [20,30,40], "color": "red" }
+  ],
+  "terrain_hexes": [
+    { "coord": "G11", "type": "mountain", "cost": "70M" },
+    { "coord": "H7", "type": "mountain", "cost": "70M" },
+    { "coord": "H9", "type": "mountain", "cost": "70M" },
+    { "coord": "H12", "type": "mountain", "cost": "70M" },
+    { "coord": "I8", "type": "mountain", "cost": "70M" },
+    { "coord": "I10", "type": "mountain", "cost": "70M" },
+    { "coord": "I13", "type": "mountain", "cost": "70M" },
+    { "coord": "J16", "type": "mountain", "cost": "70M" },
+    { "coord": "K15", "type": "mountain", "cost": "70M" },
+    { "coord": "N8", "type": "mountain", "cost": "70M" },
+    { "coord": "O7", "type": "mountain", "cost": "70M" }
+  ],
+  "rivers_note": "Elbe (von Hamburg/Schwerin Richtung Magdeburg/Dresden), Rhein (entlang Koeln-Mainz-Ludwigshafen Richtung Sueden), Donau (Richtung Ost Bayern). 50M-Markierungen liegen an Flussquerungen.",
+  "review_checklist": [
+    "Berlin: genaue Zahlenwerte (2/5 und Marker) pruefen",
+    "Fuerth/Nuernberg: Tokens/Zahl pruefen",
+    "Muenchen: Marker B vs. eigener Gesellschaftsmarker pruefen",
+    "Offboard-Werte Ostpreussen/Oberschlesien/Elsass-Lothringen pruefen",
+    "Alle mountain-Hex-Koordinaten gegen Originalraster pruefen (Position evtl. +/-1 Spalte)",
+    "Stadtnamen-Marker (Y/M/S/O/W/B) den richtigen Privatbahn-/Gesellschafts-Codes zuordnen"
+  ]
+}

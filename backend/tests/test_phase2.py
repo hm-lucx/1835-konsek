@@ -62,7 +62,7 @@ class TestGameBoardLoading:
         """Test that board has hex positions."""
         board = loader.load_board()
         assert len(board.positions) > 0
-        assert len(board.positions) == 131  # reconstructed 1835 map
+        assert len(board.positions) == 140  # reconstructed 1835 map
 
     def test_board_position_retrieval(self, loader: GameDataLoader) -> None:
         """Test retrieving position from board."""
@@ -134,7 +134,7 @@ class TestGameBoardLoading:
     def test_board_münchen_properties(self, loader: GameDataLoader) -> None:
         """Test München position properties on the reconstructed map."""
         board = loader.load_board()
-        münchen = board.get_position(14, 7)
+        münchen = board.get_position(13, 7)
         assert münchen is not None
         assert münchen.location_name == "München"
         assert münchen.terrain == "home"
@@ -158,4 +158,4 @@ class TestGameDataLoaderWithBoard:
         """Test that board in load_all() is complete."""
         data = loader.load_all()
         board = data["board"]
-        assert len(board.positions) == 131
+        assert len(board.positions) == 140

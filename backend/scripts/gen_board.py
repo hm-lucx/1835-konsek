@@ -3,6 +3,10 @@
 Coordinate model matches the renderer: flat-top hexes, q = column (left→right),
 r = vertical band; odd q is offset half a hex downward. The printed letter rows
 A–P collapse into r-bands of two letters each (A/B=0, C/D=1, … O/P=7).
+
+Mapping from map_data.json coordinates (e.g. "C11"):
+  row letter → r-band: A/B=0, C/D=1, E/F=2, G/H=3, I/J=4, K/L=5, M/N=6, O/P=7
+  column number → q:  q = col - 1
 """
 import io
 
@@ -15,57 +19,69 @@ LAND = {
     3: (2, 21),
     4: (2, 21),
     5: (2, 18),
-    6: (2, 17),
+    6: (1, 17),
     7: (3, 15),
 }
 
-# Water fringe along the northern coast (r0) and a couple of sea hexes.
-WATER = [(q, 0) for q in range(7, 15)] + [(3, 1), (20, 1)]
+# Northern sea — r=0 band is mostly water.
+# Kiel (B7 → q=6) splits the sea: North Sea west, Baltic east.
+WATER = (
+    [(q, 0) for q in [4, 5]]           # North Sea west of Kiel
+    + [(q, 0) for q in range(7, 21)]   # Baltic Sea east of Kiel (q=7..20)
+    + [(3, 1)]                         # Frisian coast inlet (west)
+)
 
-# Mountains (70 M build cost) — the central/southern triangle hexes.
-MOUNTAINS = [(9, 3), (11, 3), (8, 4), (10, 4), (12, 4), (14, 4),
-             (8, 5), (15, 5), (8, 6), (6, 7), (12, 6)]
+# Mountains (70 M build cost) — from map_data.json terrain_hexes, q=col-1, r=band.
+# H7=(6,3) conflicts with Dortmund city → city wins, mountain skipped.
+# I8=(7,4) conflicts with Mainz/Wiesbaden city → city wins.
+MOUNTAINS = [
+    (8, 3), (10, 3), (11, 3),          # H9 Westerwald, G11 Harz, H12 Thüringer Wald
+    (7, 4), (9, 4), (12, 4), (15, 4),  # I8 Taunus(overridden), I10 Rhön, I13 Erzgebirge, J16 Böhmerwald
+    (14, 5),                            # K15 Bayer. Voralpen
+    (7, 6),                             # N8 Schwarzwald
+    (6, 7),                             # O7 Süd-Schwarzwald / Vogesen
+]
 
-# Off-board red border regions (Fernverbindungen).
+# Off-board red border regions.
+# Coordinates from map_data.json, mapped via q=col-1, r=band.
 OFFBOARD = {
-    (21, 0): "20/20/40",   # Ostpreußen
-    (21, 4): "20/30/40",   # Oberschlesien
-    (2, 6): "50",          # Elsaß-Lothringen
+    (20, 1): ("20/30/40", "Ostpreußen"),      # C21 → q=20, r=1
+    (20, 4): ("20/30/40", "Oberschlesien"),   # I21 → q=20, r=4
+    (1, 6):  ("50/60",    "Elsaß-Lothringen"), # M2 → q=1, r=6
 }
 
-# Small nameless halts (black dots) scattered like the printed board.
-TOWNS = [(9, 2), (14, 3), (5, 4), (16, 4), (10, 5), (4, 6), (13, 6), (7, 7)]
+# Small nameless halts (black dots).
+TOWNS = [(5, 4), (16, 4), (10, 5), (4, 6), (13, 6), (7, 7)]
 
-# Cities: (q, r) -> (name, value, marker, terrain)
-# terrain "city" = white/printed station, "home" = grey company home,
-# "citybrown" = pre-printed brown city (Braunschweig).
+# Cities: (q, r) → (name, value, marker, terrain)
+# Coordinates from map_data.json, mapped via q=col-1, r=band.
 CITIES = {
-    (11, 0): ("Kiel", "", "", "citywhite"),
-    (10, 1): ("Hamburg", "50", "H", "city"),
-    (12, 1): ("Schwerin", "", "M", "home"),
-    (5, 1):  ("Oldenburg", "", "O", "home"),
-    (7, 1):  ("Bremen", "50", "", "city"),
-    (17, 2): ("Berlin", "50", "B", "city"),
-    (8, 2):  ("Hannover", "", "", "citywhite"),
-    (11, 2): ("Braunschweig", "", "", "citybrown"),
-    (13, 2): ("Magdeburg", "", "3", "city"),
-    (4, 3):  ("Essen/Duisburg", "50", "XX", "city"),
-    (6, 3):  ("Dortmund", "", "4", "city"),
-    (3, 3):  ("Düsseldorf", "", "Y", "city"),
-    (16, 3): ("Leipzig", "", "S", "home"),
-    (19, 3): ("Dresden", "", "Y", "citywhite"),
-    (3, 4):  ("Köln", "50", "Y", "city"),
-    (6, 4):  ("Mainz/Wiesbaden", "50", "XX", "city"),
-    (8, 4):  ("Frankfurt", "50", "H", "city"),  # overrides mountain at (8,4)
-    (5, 5):  ("Ludwigshafen/Mannheim", "", "B", "city"),
-    (13, 5): ("Fürth/Nürnberg", "50", "XX", "city"),
-    (7, 6):  ("Stuttgart", "", "W", "home"),
-    (10, 6): ("Augsburg", "", "", "citywhite"),
-    (3, 7):  ("Freiburg", "", "", "citywhite"),
-    (14, 7): ("München", "", "Y", "home"),
+    (6,  0): ("Kiel",                  "",    "",   "citywhite"),  # B7
+    (10, 1): ("Hamburg",               "50",  "H",  "city"),       # C11
+    (11, 1): ("Schwerin",              "",    "M",  "home"),       # C12
+    (8,  1): ("Oldenburg",             "",    "O",  "home"),       # D9
+    (9,  1): ("Bremen",                "50",  "",   "city"),       # D10
+    (17, 2): ("Berlin",                "50",  "B",  "city"),       # E18
+    (7,  2): ("Hannover",              "",    "",   "citywhite"),  # F8
+    (9,  2): ("Braunschweig",          "",    "",   "citybrown"),  # F10
+    (12, 2): ("Magdeburg",             "",    "3",  "city"),       # F13
+    (4,  3): ("Essen/Duisburg",        "50",  "XX", "city"),       # G5
+    (6,  3): ("Dortmund",              "",    "4",  "city"),       # G7
+    (3,  3): ("Düsseldorf",            "",    "Y",  "city"),       # H4
+    (14, 3): ("Leipzig",               "",    "S",  "home"),       # H15
+    (19, 3): ("Dresden",               "",    "Y",  "citywhite"),  # H20
+    (4,  4): ("Köln",                  "50",  "Y",  "city"),       # I5
+    (7,  4): ("Mainz/Wiesbaden",       "50",  "XX", "city"),       # J8
+    (8,  4): ("Frankfurt",             "50",  "H",  "city"),       # J9
+    (6,  5): ("Ludwigshafen/Mannheim", "",    "B",  "city"),       # L7
+    (13, 5): ("Fürth/Nürnberg",        "50",  "XX", "city"),       # L14
+    (8,  6): ("Stuttgart",             "",    "W",  "home"),       # M9
+    (11, 6): ("Augsburg",              "",    "",   "citywhite"),  # N12
+    (13, 7): ("München",               "",    "Y",  "home"),       # O14
+    (4,  7): ("Freiburg",              "",    "",   "citywhite"),  # O5
 }
 
-# Build a terrain map; later entries win.
+# Build a terrain map; later entries win (cities override mountains/towns).
 hexes = {}  # (q, r) -> dict
 for r, (lo, hi) in LAND.items():
     for q in range(lo, hi + 1):
@@ -76,8 +92,8 @@ for q, r in TOWNS:
     hexes[(q, r)] = dict(name="", terrain="town", value="", marker="")
 for q, r in MOUNTAINS:
     hexes[(q, r)] = dict(name="", terrain="mountain", value="70", marker="")
-for (q, r), val in OFFBOARD.items():
-    hexes[(q, r)] = dict(name="", terrain="offboard", value=val, marker="")
+for (q, r), (val, name) in OFFBOARD.items():
+    hexes[(q, r)] = dict(name=name, terrain="offboard", value=val, marker="")
 for (q, r), (name, val, mk, terr) in CITIES.items():
     hexes[(q, r)] = dict(name=name, terrain=terr, value=val, marker=mk)
 
@@ -99,6 +115,7 @@ for (q, r) in sorted(hexes, key=lambda k: (k[1], k[0])):
     if h["marker"]:
         out.write(f"      marker: \"{h['marker']}\"\n")
 
-path = "/Users/victorritthaler/Documents/Hackathon/1835-konsek/backend/src/eg1835/data/board.yml"
-open(path, "w").write(out.getvalue())
+from pathlib import Path
+path = Path(__file__).parent.parent / "src" / "eg1835" / "data" / "board.yml"
+path.write_text(out.getvalue(), encoding="utf-8")
 print(f"wrote {len(hexes)} hexes to board.yml")
