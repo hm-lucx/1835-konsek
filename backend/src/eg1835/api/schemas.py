@@ -46,3 +46,16 @@ class LogEntry(BaseModel):
 
 class LogResponse(BaseModel):
     events: list[LogEntry]
+
+
+class MagicLinkRequest(BaseModel):
+    email: str
+
+
+class VerifyTokenRequest(BaseModel):
+    token: str
+
+
+class AuthenticatedUserResponse(BaseModel):
+    user_id: int
+    email: str

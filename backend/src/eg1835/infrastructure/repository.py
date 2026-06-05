@@ -6,12 +6,13 @@ Thin data-access layer over the ORM models.  All methods take the
 """
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import Event, Game, Player, Snapshot, User
+from .models import Event, Game, MagicToken, Player, Snapshot, User
 
 
 class EventStore:
@@ -25,6 +26,34 @@ class EventStore:
         await session.flush()
         return user
 
+    async def get_user_by_email(self, session: AsyncSession, email: str) -> User | None:
+        user: User | None = await session.scalar(select(User).where(User.email == email))
+        return user
+
+    async def get_or_create_user(self, session: AsyncSession, email: str) -> User:
+        existing = await self.get_user_by_email(session, email)
+        if existing is not None:
+            return existing
+        return await self.create_user(session, email)
+
+    # --- magic-link tokens ----------------------------------------------
+
+    async def create_magic_token(
+        self, session: AsyncSession, token: str, email: str, expires_at: datetime
+    ) -> MagicToken:
+        record = MagicToken(token=token, email=email, expires_at=expires_at)
+        session.add(record)
+        await session.flush()
+        return record
+
+    async def get_magic_token(
+        self, session: AsyncSession, token: str
+    ) -> MagicToken | None:
+        record: MagicToken | None = await session.scalar(
+            select(MagicToken).where(MagicToken.token == token)
+        )
+        return record
+
     async def create_game(self, session: AsyncSession, num_players: int) -> Game:
         game = Game(num_players=num_players, status="active")
         session.add(game)
@@ -33,6 +62,10 @@ class EventStore:
 
     async def get_game(self, session: AsyncSession, game_id: int) -> Game | None:
         return await session.get(Game, game_id)
+
+    async def list_games(self, session: AsyncSession) -> list[Game]:
+        result = await session.scalars(select(Game).order_by(Game.id))
+        return list(result)
 
     async def set_game_status(
         self, session: AsyncSession, game_id: int, status: str
