@@ -27,7 +27,7 @@ class TestViewEndpoint:
     def test_view_returns_board_and_companies(self, client: TestClient) -> None:
         game_id = _create_game(client)
         view = client.get(f"/games/{game_id}/view").json()
-        assert view["board"]["positions"]["3,0"]["location_name"] == "Hamburg"
+        assert view["board"]["positions"]["10,1"]["location_name"] == "Hamburg"
         company_ids = {c["id"] for c in view["companies"]}
         assert {"BY", "SA", "PR"} <= company_ids
 

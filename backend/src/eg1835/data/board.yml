@@ -1,184 +1,592 @@
-# 1835 Konsek Board Layout
-# Hexagonal grid using axial coordinates (q, r)
+# 1835 Konsek Board Layout — reconstructed from the printed map.
+# Flat-top hexes: q = column (left→right), r = band (odd q offset down).
+# terrain: plain | town | city | home | citybrown | mountain | water | offboard
 board:
-  width: 14
-  height: 10
+  width: 22
+  height: 8
   positions:
-    # Row 0
-    - q: 3
-      r: 0
-      tile_id: 1
-      name: "Hamburg"
-    - q: 5
-      r: 0
-      tile_id: 2
-      name: "Kiel"
-    - q: 8
-      r: 0
-      tile_id: 3
-      name: "Stettin"
-    - q: 11
-      r: 0
-      tile_id: 4
-      name: "Berlin"
-    # Row 1
-    - q: 2
-      r: 1
-      tile_id: 5
-      name: "Bremen"
-    - q: 5
-      r: 1
-      tile_id: 6
-      name: "Hannover"
-    - q: 8
-      r: 1
-      tile_id: 7
-      name: "Magdeburg"
-    - q: 11
-      r: 1
-      tile_id: 8
-      name: "Frankfurt/Oder"
-    # Row 2
-    - q: 1
-      r: 2
-      tile_id: 9
-      name: "Amsterdam"
-    - q: 4
-      r: 2
-      tile_id: 10
-      name: "Köln"
     - q: 7
-      r: 2
-      tile_id: 11
-      name: "Kassel"
-    - q: 10
-      r: 2
-      tile_id: 12
-      name: "Halle"
-    # Row 3
-    - q: 2
-      r: 3
-      tile_id: 13
-      name: "Rheinland"
-    - q: 5
-      r: 3
-      tile_id: 14
-      name: "Wetzlar"
+      r: 0
+      tile_id: 0
+      terrain: "water"
     - q: 8
-      r: 3
-      tile_id: 15
-      name: "Erfurt"
-    - q: 11
-      r: 3
-      tile_id: 16
-      name: "Leipzig"
-    # Row 4
-    - q: 1
-      r: 4
-      tile_id: 17
-      name: "Aachen"
-    - q: 4
-      r: 4
-      tile_id: 18
-      name: "Bonn"
-    - q: 7
-      r: 4
-      tile_id: 19
-      name: "Frankfurt am Main"
-    - q: 10
-      r: 4
-      tile_id: 20
-      name: "Nürnberg"
-    - q: 13
-      r: 4
-      tile_id: 21
-      name: "Dresden"
-    # Row 5
-    - q: 2
-      r: 5
-      tile_id: 22
-      name: "Trier"
-    - q: 5
-      r: 5
-      tile_id: 23
-      name: "Würzburg"
-    - q: 8
-      r: 5
-      tile_id: 24
-      name: "Bamberg"
-    - q: 11
-      r: 5
-      tile_id: 25
-      name: "Chemnitz"
-    # Row 6
-    - q: 1
-      r: 6
-      tile_id: 26
-      name: "Saarbrücken"
-    - q: 4
-      r: 6
-      tile_id: 27
-      name: "Mannheim"
-    - q: 7
-      r: 6
-      tile_id: 28
-      name: "Darmstadt"
-    - q: 10
-      r: 6
-      tile_id: 29
-      name: "Regensburg"
-    - q: 13
-      r: 6
-      tile_id: 30
-      name: "Pilsen"
-    # Row 7
-    - q: 2
-      r: 7
-      tile_id: 31
-      name: "Straßburg"
-    - q: 5
-      r: 7
-      tile_id: 32
-      name: "Heidelberg"
-    - q: 8
-      r: 7
-      tile_id: 33
-      name: "Nürtingen"
-    - q: 11
-      r: 7
-      tile_id: 34
-      name: "Passau"
-    # Row 8
-    - q: 3
-      r: 8
-      tile_id: 35
-      name: "Konstanz"
-    - q: 6
-      r: 8
-      tile_id: 36
-      name: "Stuttgart"
+      r: 0
+      tile_id: 0
+      terrain: "water"
     - q: 9
-      r: 8
-      tile_id: 37
-      name: "München"
-    - q: 12
-      r: 8
-      tile_id: 38
-      name: "Salzburg"
-    # Row 9
-    - q: 4
-      r: 9
-      tile_id: 39
-      name: "Basel"
-    - q: 7
-      r: 9
-      tile_id: 40
-      name: "Ulm"
+      r: 0
+      tile_id: 0
+      terrain: "water"
     - q: 10
-      r: 9
-      tile_id: 41
-      name: "Augsburg"
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 11
+      r: 0
+      tile_id: 0
+      terrain: "citywhite"
+      name: "Kiel"
+    - q: 12
+      r: 0
+      tile_id: 0
+      terrain: "water"
     - q: 13
-      r: 9
-      tile_id: 42
-      name: "Wien"
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 14
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 21
+      r: 0
+      tile_id: 0
+      terrain: "offboard"
+      value: "20/20/40"
+    - q: 3
+      r: 1
+      tile_id: 0
+      terrain: "water"
+    - q: 4
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 5
+      r: 1
+      tile_id: 0
+      terrain: "home"
+      name: "Oldenburg"
+      marker: "O"
+    - q: 6
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 7
+      r: 1
+      tile_id: 0
+      terrain: "city"
+      name: "Bremen"
+      value: "50"
+    - q: 8
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 9
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 10
+      r: 1
+      tile_id: 0
+      terrain: "city"
+      name: "Hamburg"
+      value: "50"
+      marker: "H"
+    - q: 11
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 12
+      r: 1
+      tile_id: 0
+      terrain: "home"
+      name: "Schwerin"
+      marker: "M"
+    - q: 13
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 14
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 15
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 16
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 17
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 18
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 19
+      r: 1
+      tile_id: 0
+      terrain: "plain"
+    - q: 20
+      r: 1
+      tile_id: 0
+      terrain: "water"
+    - q: 3
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 4
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 5
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 6
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 7
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 8
+      r: 2
+      tile_id: 0
+      terrain: "citywhite"
+      name: "Hannover"
+    - q: 9
+      r: 2
+      tile_id: 0
+      terrain: "town"
+    - q: 10
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 11
+      r: 2
+      tile_id: 0
+      terrain: "citybrown"
+      name: "Braunschweig"
+    - q: 12
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 13
+      r: 2
+      tile_id: 0
+      terrain: "city"
+      name: "Magdeburg"
+      marker: "3"
+    - q: 14
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 15
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 16
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 17
+      r: 2
+      tile_id: 0
+      terrain: "city"
+      name: "Berlin"
+      value: "50"
+      marker: "B"
+    - q: 18
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 19
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 20
+      r: 2
+      tile_id: 0
+      terrain: "plain"
+    - q: 2
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 3
+      r: 3
+      tile_id: 0
+      terrain: "city"
+      name: "Düsseldorf"
+      marker: "Y"
+    - q: 4
+      r: 3
+      tile_id: 0
+      terrain: "city"
+      name: "Essen/Duisburg"
+      value: "50"
+      marker: "XX"
+    - q: 5
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 6
+      r: 3
+      tile_id: 0
+      terrain: "city"
+      name: "Dortmund"
+      marker: "4"
+    - q: 7
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 8
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 9
+      r: 3
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 10
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 11
+      r: 3
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 12
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 13
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 14
+      r: 3
+      tile_id: 0
+      terrain: "town"
+    - q: 15
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 16
+      r: 3
+      tile_id: 0
+      terrain: "home"
+      name: "Leipzig"
+      marker: "S"
+    - q: 17
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 18
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 19
+      r: 3
+      tile_id: 0
+      terrain: "citywhite"
+      name: "Dresden"
+      marker: "Y"
+    - q: 20
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 21
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 2
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 3
+      r: 4
+      tile_id: 0
+      terrain: "city"
+      name: "Köln"
+      value: "50"
+      marker: "Y"
+    - q: 4
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 5
+      r: 4
+      tile_id: 0
+      terrain: "town"
+    - q: 6
+      r: 4
+      tile_id: 0
+      terrain: "city"
+      name: "Mainz/Wiesbaden"
+      value: "50"
+      marker: "XX"
+    - q: 7
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 8
+      r: 4
+      tile_id: 0
+      terrain: "city"
+      name: "Frankfurt"
+      value: "50"
+      marker: "H"
+    - q: 9
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 10
+      r: 4
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 11
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 12
+      r: 4
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 13
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 14
+      r: 4
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 15
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 16
+      r: 4
+      tile_id: 0
+      terrain: "town"
+    - q: 17
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 18
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 19
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 20
+      r: 4
+      tile_id: 0
+      terrain: "plain"
+    - q: 21
+      r: 4
+      tile_id: 0
+      terrain: "offboard"
+      value: "20/30/40"
+    - q: 2
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 3
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 4
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 5
+      r: 5
+      tile_id: 0
+      terrain: "city"
+      name: "Ludwigshafen/Mannheim"
+      marker: "B"
+    - q: 6
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 7
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 8
+      r: 5
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 9
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 10
+      r: 5
+      tile_id: 0
+      terrain: "town"
+    - q: 11
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 12
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 13
+      r: 5
+      tile_id: 0
+      terrain: "city"
+      name: "Fürth/Nürnberg"
+      value: "50"
+      marker: "XX"
+    - q: 14
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 15
+      r: 5
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 16
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 17
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 18
+      r: 5
+      tile_id: 0
+      terrain: "plain"
+    - q: 2
+      r: 6
+      tile_id: 0
+      terrain: "offboard"
+      value: "50"
+    - q: 3
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 4
+      r: 6
+      tile_id: 0
+      terrain: "town"
+    - q: 5
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 6
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 7
+      r: 6
+      tile_id: 0
+      terrain: "home"
+      name: "Stuttgart"
+      marker: "W"
+    - q: 8
+      r: 6
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 9
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 10
+      r: 6
+      tile_id: 0
+      terrain: "citywhite"
+      name: "Augsburg"
+    - q: 11
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 12
+      r: 6
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 13
+      r: 6
+      tile_id: 0
+      terrain: "town"
+    - q: 14
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 15
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 16
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 17
+      r: 6
+      tile_id: 0
+      terrain: "plain"
+    - q: 3
+      r: 7
+      tile_id: 0
+      terrain: "citywhite"
+      name: "Freiburg"
+    - q: 4
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 5
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 6
+      r: 7
+      tile_id: 0
+      terrain: "mountain"
+      value: "70"
+    - q: 7
+      r: 7
+      tile_id: 0
+      terrain: "town"
+    - q: 8
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 9
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 10
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 11
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 12
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 13
+      r: 7
+      tile_id: 0
+      terrain: "plain"
+    - q: 14
+      r: 7
+      tile_id: 0
+      terrain: "home"
+      name: "München"
+      marker: "Y"
+    - q: 15
+      r: 7
+      tile_id: 0
+      terrain: "plain"

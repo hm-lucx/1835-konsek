@@ -98,6 +98,9 @@ class GameDataLoader:
                 coordinate=coordinate,
                 tile_id=pos_data.get("tile_id", 0),
                 location_name=pos_data.get("name", ""),
+                terrain=pos_data.get("terrain", "plain"),
+                value=str(pos_data.get("value", "")),
+                marker=str(pos_data.get("marker", "")),
             )
 
         return GameBoard(width=width, height=height, positions=positions)

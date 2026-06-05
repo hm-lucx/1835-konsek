@@ -352,12 +352,12 @@ class TestBoardSnapshot:
         """Board positions match known coordinates from the 1835 map."""
         board = loader.load_board()
         snapshot = {
-            (3, 0): "Hamburg",
-            (11, 0): "Berlin",
-            (9, 8): "München",
-            (11, 3): "Leipzig",
-            (7, 4): "Frankfurt am Main",
-            (4, 6): "Mannheim",
+            (10, 1): "Hamburg",
+            (17, 2): "Berlin",
+            (14, 7): "München",
+            (16, 3): "Leipzig",
+            (8, 4): "Frankfurt",
+            (5, 5): "Ludwigshafen/Mannheim",
         }
         for (q, r), expected in snapshot.items():
             pos = board.get_position(q, r)
@@ -368,4 +368,4 @@ class TestBoardSnapshot:
 
     def test_snapshot_total_positions(self, loader: GameDataLoader) -> None:
         board = loader.load_board()
-        assert len(board.positions) == 42
+        assert len(board.positions) == 131
