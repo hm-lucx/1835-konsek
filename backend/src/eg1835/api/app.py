@@ -11,25 +11,35 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..application.auth_service import AuthError, AuthService
 from ..application.game_service import (
     ActionValidationError,
     ConflictError,
     GameNotFoundError,
+    GamePausedError,
     GameService,
     TurnError,
 )
 from ..domain.serialization import action_from_payload, state_to_jsonable
 from ..infrastructure.db import Base, create_engine, create_session_factory
 from .schemas import (
+    AuthenticatedUserResponse,
     CreateGameRequest,
     CreateGameResponse,
     JoinGameRequest,
     LogResponse,
+    MagicLinkRequest,
     StateResponse,
     SubmitActionRequest,
     SubmitActionResponse,
+    VerifyTokenRequest,
 )
 from .websocket import ConnectionManager
+
+
+def _auth(app: FastAPI) -> AuthService:
+    auth: AuthService = app.state.auth_service
+    return auth
 
 
 def _build_router(app: FastAPI) -> APIRouter:
@@ -73,6 +83,8 @@ def _build_router(app: FastAPI) -> APIRouter:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except TurnError as exc:
             raise HTTPException(status_code=403, detail=str(exc)) from exc
+        except GamePausedError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ActionValidationError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -114,6 +126,44 @@ def _build_router(app: FastAPI) -> APIRouter:
         except GameNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+    @router.get("/games")
+    async def list_games() -> dict[str, object]:
+        return {"games": await service().list_games()}
+
+    @router.get("/games/{game_id}/export")
+    async def export_game(game_id: int) -> dict[str, object]:
+        try:
+            return await service().export_game(game_id)
+        except GameNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.post("/games/{game_id}/pause", status_code=204)
+    async def pause_game(game_id: int) -> None:
+        try:
+            await service().set_status(game_id, "paused")
+        except GameNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.post("/games/{game_id}/resume", status_code=204)
+    async def resume_game(game_id: int) -> None:
+        try:
+            await service().set_status(game_id, "active")
+        except GameNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.post("/auth/magic-link", status_code=202)
+    async def request_magic_link(req: MagicLinkRequest) -> dict[str, bool]:
+        await _auth(app).request_magic_link(req.email)
+        return {"sent": True}
+
+    @router.post("/auth/verify", response_model=AuthenticatedUserResponse)
+    async def verify_token(req: VerifyTokenRequest) -> AuthenticatedUserResponse:
+        try:
+            user = await _auth(app).verify(req.token)
+        except AuthError as exc:
+            raise HTTPException(status_code=401, detail=str(exc)) from exc
+        return AuthenticatedUserResponse(user_id=user.user_id, email=user.email)
+
     @router.websocket("/ws/games/{game_id}")
     async def game_ws(websocket: WebSocket, game_id: int) -> None:
         mgr = manager()
@@ -127,7 +177,9 @@ def _build_router(app: FastAPI) -> APIRouter:
     return router
 
 
-def create_app(service: GameService | None = None) -> FastAPI:
+def create_app(
+    service: GameService | None = None, auth: AuthService | None = None
+) -> FastAPI:
     """Build the FastAPI app.
 
     When ``service`` is None the app creates its own engine from ``DATABASE_URL``
@@ -141,8 +193,10 @@ def create_app(service: GameService | None = None) -> FastAPI:
             engine = create_engine()
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
+            session_factory = create_session_factory(engine)
             app.state.engine = engine
-            app.state.game_service = GameService(create_session_factory(engine))
+            app.state.game_service = GameService(session_factory)
+            app.state.auth_service = AuthService(session_factory)
         yield
 
     app = FastAPI(title="1835 Konsek", version="0.1.0", lifespan=lifespan)
@@ -155,6 +209,7 @@ def create_app(service: GameService | None = None) -> FastAPI:
     )
 
     app.state.game_service = service
+    app.state.auth_service = auth
     app.state.connection_manager = ConnectionManager()
 
     @app.get("/health")
