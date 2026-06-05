@@ -97,11 +97,22 @@ class HexCoordinate(BaseModel):
 
 
 class HexPosition(BaseModel):
-    """Position of a tile on the game board."""
+    """Position of a tile on the game board.
+
+    ``terrain`` colours the hex like the printed board (rule 5.5.1): ``plain``
+    open land, ``town`` (small halt), ``city`` (printed station), ``mountain``
+    (70 M build cost), ``water`` (impassable sea), ``offboard`` (red border
+    region / Fernverbindung).  ``value`` is the printed revenue label (e.g.
+    "50" or "20/30/40") and ``marker`` the printed glyph (Y / XX / B / H or a
+    company home letter).
+    """
 
     coordinate: HexCoordinate
     tile_id: int
     location_name: str
+    terrain: str = "plain"
+    value: str = ""
+    marker: str = ""
 
 
 class GameBoard(BaseModel):

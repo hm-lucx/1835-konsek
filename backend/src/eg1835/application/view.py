@@ -50,6 +50,9 @@ def _board_view(state: GameState) -> dict[str, Any]:
             # A placed tile overrides the printed base tile id (rule 5.5.1).
             "tile_id": state.placed_tiles.get(key, pos.tile_id),
             "location_name": pos.location_name,
+            "terrain": pos.terrain,
+            "value": pos.value,
+            "marker": pos.marker,
             "stations": [
                 {"company_id": cid} for cid in state.placed_stations.get(key, ())
             ],

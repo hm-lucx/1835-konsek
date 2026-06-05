@@ -55,23 +55,23 @@ class TestGameBoardLoading:
         """Test that board loads successfully."""
         board = loader.load_board()
         assert isinstance(board, GameBoard)
-        assert board.width == 14
-        assert board.height == 10
+        assert board.width == 22
+        assert board.height == 8
 
     def test_board_has_positions(self, loader: GameDataLoader) -> None:
         """Test that board has hex positions."""
         board = loader.load_board()
         assert len(board.positions) > 0
-        assert len(board.positions) == 42  # Total major cities
+        assert len(board.positions) == 131  # reconstructed 1835 map
 
     def test_board_position_retrieval(self, loader: GameDataLoader) -> None:
         """Test retrieving position from board."""
         board = loader.load_board()
-        # Hamburg at (3, 0)
-        pos = board.get_position(3, 0)
+        # Hamburg at (10, 1) on the reconstructed map.
+        pos = board.get_position(10, 1)
         assert pos is not None
         assert pos.location_name == "Hamburg"
-        assert pos.tile_id == 1
+        assert pos.terrain == "city"
 
     def test_board_position_not_found(self, loader: GameDataLoader) -> None:
         """Test retrieving non-existent position."""
@@ -82,9 +82,9 @@ class TestGameBoardLoading:
     def test_board_tile_lookup(self, loader: GameDataLoader) -> None:
         """Test tile lookup by coordinate."""
         board = loader.load_board()
-        tile = board.get_tile_at(3, 0)
+        tile = board.get_tile_at(10, 1)
         assert tile is not None
-        assert tile.id == 1
+        assert tile.id == 0  # base map carries no rail tile yet
 
     def test_board_all_positions_have_coordinates(
         self, loader: GameDataLoader
@@ -97,11 +97,12 @@ class TestGameBoardLoading:
             assert isinstance(pos.coordinate.r, int)
 
     def test_board_all_positions_have_names(self, loader: GameDataLoader) -> None:
-        """Test that all positions have location names."""
+        """Cities and company homes carry a printed name (plain land does not)."""
         board = loader.load_board()
+        named_terrains = {"city", "home", "citybrown"}
         for pos in board.positions.values():
-            assert pos.location_name
-            assert len(pos.location_name) > 0
+            if pos.terrain in named_terrains:
+                assert pos.location_name, f"unnamed {pos.terrain} at {pos.coordinate}"
 
     def test_board_position_keys_match_coordinates(
         self, loader: GameDataLoader
@@ -113,30 +114,30 @@ class TestGameBoardLoading:
             assert key == expected_key
 
     def test_board_hamburg_properties(self, loader: GameDataLoader) -> None:
-        """Test Hamburg position properties."""
+        """Test Hamburg position properties on the reconstructed map."""
         board = loader.load_board()
-        hamburg = board.get_position(3, 0)
+        hamburg = board.get_position(10, 1)
         assert hamburg is not None
-        assert hamburg.tile_id == 1
         assert hamburg.location_name == "Hamburg"
-        assert hamburg.coordinate.q == 3
-        assert hamburg.coordinate.r == 0
+        assert hamburg.terrain == "city"
+        assert hamburg.coordinate.q == 10
+        assert hamburg.coordinate.r == 1
 
     def test_board_berlin_properties(self, loader: GameDataLoader) -> None:
-        """Test Berlin position properties."""
+        """Test Berlin position properties on the reconstructed map."""
         board = loader.load_board()
-        berlin = board.get_position(11, 0)
+        berlin = board.get_position(17, 2)
         assert berlin is not None
-        assert berlin.tile_id == 4
         assert berlin.location_name == "Berlin"
+        assert berlin.marker == "B"
 
     def test_board_münchen_properties(self, loader: GameDataLoader) -> None:
-        """Test München position properties."""
+        """Test München position properties on the reconstructed map."""
         board = loader.load_board()
-        münchen = board.get_position(9, 8)
+        münchen = board.get_position(14, 7)
         assert münchen is not None
-        assert münchen.tile_id == 37
         assert münchen.location_name == "München"
+        assert münchen.terrain == "home"
 
 
 class TestGameDataLoaderWithBoard:
@@ -157,4 +158,4 @@ class TestGameDataLoaderWithBoard:
         """Test that board in load_all() is complete."""
         data = loader.load_all()
         board = data["board"]
-        assert len(board.positions) == 42
+        assert len(board.positions) == 131

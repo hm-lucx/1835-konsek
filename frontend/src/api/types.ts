@@ -6,10 +6,24 @@ export interface HexCoordinate {
   r: number
 }
 
+export type Terrain =
+  | 'plain'
+  | 'town'
+  | 'city'
+  | 'citywhite'
+  | 'home'
+  | 'citybrown'
+  | 'mountain'
+  | 'water'
+  | 'offboard'
+
 export interface BoardPosition {
   coordinate: HexCoordinate
   tile_id: number
   location_name: string
+  terrain: Terrain
+  value: string // printed revenue label, e.g. "50" or "20/30/40"
+  marker: string // printed glyph: Y / XX / B / H or a company home letter
   stations: { company_id: string }[]
 }
 

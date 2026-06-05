@@ -19,9 +19,9 @@ class TestBuildView:
     def test_board_positions_are_keyed_axially(self) -> None:
         view = build_view(GameState.initial(3), sequence=0)
         positions = view["board"]["positions"]
-        assert "3,0" in positions
-        assert positions["3,0"]["coordinate"] == {"q": 3, "r": 0}
-        assert positions["3,0"]["location_name"] == "Hamburg"
+        assert "10,1" in positions
+        assert positions["10,1"]["coordinate"] == {"q": 10, "r": 1}
+        assert positions["10,1"]["location_name"] == "Hamburg"
 
     def test_players_expose_cash_and_paper_limit(self) -> None:
         view = build_view(GameState.initial(3), sequence=0)
