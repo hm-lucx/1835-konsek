@@ -1,4 +1,4 @@
-# 1835-konsek
+# 1835 Konsek
 
 Digitale Umsetzung des Brettspiel-Klassikers **1835** – ein Eisenbahnbauspiel im Deutschland des 19. Jahrhunderts. Spieler kaufen Aktien, bauen Streckennetze und betreiben Züge, um den höchsten Vermögenswert zu erreichen.
 
@@ -6,125 +6,103 @@ Die vollständigen Spielregeln sind in [1835-Spielregeln.md](1835-Spielregeln.md
 
 ---
 
-## Architektur
-
-```
-Browser (React)  ←HTTP/WS→  FastAPI (Python)  ←→  PostgreSQL
-     :5173                       :8000               :5432
-```
-
-**Kernprinzip:** Die gesamte Spiellogik lebt im Backend. Das Frontend rendert ausschließlich, was der Server in `legal_actions` liefert – keine Spielregeln im Client. Kein optimistisches Update: der Server ist immer die einzige Wahrheit.
-
-### Backend-Schichten
-
-```
-api/            HTTP-Rand: FastAPI-Routen, Schemas, WebSocket
-application/    Orchestrierung: GameService, AuthService, View-Projektion
-domain/         Spiellogik: rein funktional, kein I/O
-infrastructure/ Datenbankzugriff: SQLAlchemy ORM + Repository
-```
-
-### Domain (`backend/src/eg1835/domain/`)
-
-| Datei | Inhalt |
-|-------|--------|
-| `game_state.py` | Immutabler Spielzustand (`GameState`) |
-| `actions.py` | Alle Spielaktionen mit `validate` / `apply` |
-| `fsm.py` | Phasen-State-Machine (AR → OR → Sub-Phasen) |
-| `or_flow.py` | OR-Runden-Ablauf, `current_actor()`, `step()` |
-| `start_packet.py` | Startpaket-Auktion |
-| `tile_system.py` | Gleisplättchen & Aufwertungsregeln |
-| `routing.py` | Routenfindung & Einnahmenberechnung |
-| `share_price.py` | Aktienkurstafel-Logik |
-
-### Speicherung — Event Sourcing
-
-Spielstände werden als geordneter **Event-Log** in PostgreSQL gespeichert. Jede Aktion schreibt ein neues Event; der aktuelle Spielzustand wird durch Replay aller Events rekonstruiert.
-
-```
-events      game_id | sequence | type | payload (JSONB) | player_id
-            UNIQUE(game_id, sequence)  ← optimistisches Locking (HTTP 409 bei Race)
-
-snapshots   game_id | sequence | state_blob (bytes)
-            ← alle 20 Events geschrieben, damit Replay nicht von Event 1 starten muss
-```
-
-Weitere Tabellen: `users`, `games`, `players`, `magic_tokens`
-
-### API-Endpunkte
-
-| Method | Pfad | Funktion |
-|--------|------|----------|
-| POST | `/games` | Spiel erstellen |
-| POST | `/games/{id}/join` | Spieler beitreten |
-| POST | `/games/{id}/actions` | Aktion ausführen |
-| GET | `/games/{id}/state` | Roher GameState |
-| GET | `/games/{id}/view` | UI-Projektion (Board, Stocks, Players) |
-| GET | `/games/{id}/legal_actions?player_id=` | Erlaubte Züge für einen Spieler |
-| GET | `/games/{id}/log` | Vollständiger Event-Log |
-| GET | `/games/{id}/export` | Kompletter Export (replaybar) |
-| POST | `/games/{id}/pause` | Spiel pausieren |
-| POST | `/games/{id}/resume` | Spiel fortsetzen |
-| WS | `/ws/games/{id}` | Echtzeit-Updates per WebSocket |
-| POST | `/auth/magic-link` | Passwortlosen Login-Link anfordern |
-| POST | `/auth/verify` | Magic-Link-Token prüfen |
-
-### Frontend (`frontend/src/`)
-
-**Stack:** React 18 + TypeScript + Vite + Zustand
-
-Vite proxied `/api` → Backend `:8000`. Bei jedem WebSocket-Event (`state_delta`) fetcht der Store frisches View + Legal Actions.
-
-| Komponente | Funktion |
-|------------|----------|
-| `HexMap.tsx` | Hex-Spielbrett (SVG) |
-| `ActionBar.tsx` | Aktions-Buttons (generiert aus `legal_actions`) |
-| `CompanyPanel.tsx` | Gesellschafts-Übersicht |
-| `StockMarket.tsx` | Aktienkurstafel |
-| `PlayerPanel.tsx` | Spieler-Vermögen |
-| `TileTray.tsx` | Verfügbare Gleisplättchen |
-| `PhaseGuide.tsx` | Phasen-Erklärung für den aktiven Spieler |
-
----
-
-## Quickstart
+## Starten
 
 ```bash
-# Entwicklungsumgebung starten
 make dev
-
-# Nach Code-Änderungen neu bauen
-docker-compose up --build
 ```
 
 Danach erreichbar unter:
-- Frontend: http://localhost:5173
-- API: http://localhost:8000
-- API-Docs: http://localhost:8000/docs
+
+| Dienst | URL |
+|--------|-----|
+| Spieloberfläche | http://localhost:5173 |
+| API | http://localhost:8000 |
+| API-Dokumentation | http://localhost:8000/docs |
+
+---
+
+## Wie funktioniert das Spiel?
+
+Das Frontend zeigt immer nur das, was der Server erlaubt. Es gibt keine Spiellogik im Browser – der Server entscheidet bei jedem Zug, welche Aktionen gültig sind, und schickt diese als Liste ans Frontend. Die Buttons in der Oberfläche entstehen direkt aus dieser Liste.
+
+Das bedeutet: Regeländerungen oder neue Spielphasen müssen nur an einer Stelle gepflegt werden – im Backend.
+
+---
+
+## Wie wird der Spielstand gespeichert?
+
+Jede Aktion im Spiel wird als **Eintrag in einer Datenbank** festgehalten – nicht der Zustand selbst, sondern was passiert ist. Der aktuelle Spielstand ergibt sich immer durch das Nachspielen aller bisherigen Aktionen.
+
+Das hat zwei Vorteile:
+- **Vollständige Nachvollziehbarkeit** – jeder Zug ist dokumentiert
+- **Zeitreise** – der Spielstand zu jedem beliebigen Zeitpunkt kann wiederhergestellt werden
+
+Damit das Wiederherstellen nicht jedes Mal von Anfang an passieren muss, wird alle 20 Aktionen ein Zwischenstand gespeichert.
+
+Mehrere Spieler können gleichzeitig spielen, ohne dass Züge verloren gehen: Wenn zwei Aktionen gleichzeitig ankommen, gewinnt die erste – die zweite bekommt eine Fehlermeldung und kann es erneut versuchen.
+
+---
+
+## Echtzeit-Updates
+
+Sobald ein Spieler einen Zug macht, sehen alle anderen Spieler im selben Spiel den neuen Stand sofort – ohne die Seite neu laden zu müssen. Das läuft über eine dauerhafte Verbindung (WebSocket) zwischen Browser und Server.
+
+---
+
+## Authentifizierung
+
+Der Login funktioniert ohne Passwort. Nach Eingabe einer E-Mail-Adresse wird ein einmaliger Link verschickt. Wer auf den Link klickt, ist eingeloggt.
+
+---
+
+## Aufbau des Projekts
+
+```
+frontend/   Spieloberfläche (React, TypeScript)     → :5173
+backend/    Spiellogik & API (Python, FastAPI)       → :8000
+            └── domain/       Spielregeln
+            └── application/  Ablaufsteuerung
+            └── api/          Schnittstelle nach außen
+            └── infrastructure/ Datenbank
+postgres    Speicherung aller Spielstände            → :5432
+```
+
+### Spieloberfläche
+
+| Bereich | Funktion |
+|---------|----------|
+| Hex-Karte | Das Spielbrett mit allen Städten und Strecken |
+| Aktionsleiste | Alle Züge, die aktuell erlaubt sind |
+| Gesellschaften | Übersicht über Eisenbahngesellschaften und deren Züge |
+| Aktienkurstafel | Aktueller Kursverlauf aller Gesellschaften |
+| Spieler-Panel | Vermögen und Aktienbesitz je Spieler |
+| Gleisvorrat | Verfügbare Gleisplättchen zum Bauen |
+| Phasenführer | Erklärung, was in der aktuellen Spielphase zu tun ist |
+
+### API-Übersicht
+
+| Aktion | Beschreibung |
+|--------|-------------|
+| Spiel erstellen | Neue Partie anlegen |
+| Spiel beitreten | Als Spieler an einer offenen Partie teilnehmen |
+| Zug ausführen | Eine Aktion einreichen – der Server prüft und speichert |
+| Spielstand abrufen | Aktuellen Stand des Spiels laden |
+| Erlaubte Züge | Liste aller Aktionen, die ein Spieler gerade machen darf |
+| Zugprotokoll | Alle bisherigen Aktionen einer Partie |
+| Export | Vollständigen Spielstand als JSON exportieren (für Backups oder Import) |
+| Pause / Fortsetzen | Partie einfrieren und wieder aktivieren |
+| Echtzeit | WebSocket-Verbindung für Live-Updates |
+| Magic-Link | Passwortlosen Login-Link per E-Mail anfordern |
 
 ---
 
 ## Häufige Befehle
 
 ```bash
-make test      # Tests (pytest + tsc)
-make lint      # Linter (ruff + mypy + eslint)
-make format    # Formatter (ruff + prettier)
-make migrate   # Datenbankmigrationen (alembic upgrade head)
-make clean     # Docker-Container und Volumes entfernen
+make test      # Tests ausführen
+make lint      # Code-Qualität prüfen
+make format    # Code automatisch formatieren
+make migrate   # Datenbankstruktur aktualisieren
+make clean     # Alle Container und Daten entfernen
 ```
-
----
-
-## Entwicklungsstand
-
-Die Implementierung ist in Phasen aufgeteilt. Offene Phasen als GitHub Issues:
-
-| Phase | Issue | Inhalt |
-|-------|-------|--------|
-| 6 | [#7](../../issues/7) | Operationsrunden-Logik (Bauen, Fahren, Lokkauf, Phasenwechsel) |
-| 7 | [#8](../../issues/8) | Sonderfälle: Preußen, Privatbahnen, Bankrott, Baden-Heimat |
-| 8 | [#9](../../issues/9) | Persistenz & API (Event-Sourcing, WebSocket, Spielende) |
-| 9 | [#10](../../issues/10) | Frontend-Grundgerüst (HexMap, Aktienkurstafel, ActionBar) |
-| 10 | [#11](../../issues/11) | Multiplayer-Features (Lobby, Auth, Web Push) |
-| 11 | [#12](../../issues/12) | Optionale Regeln (Konfig-Flags) |
