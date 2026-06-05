@@ -38,6 +38,9 @@ export interface Tile {
   color: 'yellow' | 'green' | 'brown'
   name: string
   cities: number
+  value: number
+  count: number
+  label: string
 }
 
 export interface StocksState {

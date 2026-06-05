@@ -354,10 +354,10 @@ class TestBoardSnapshot:
         snapshot = {
             (10, 1): "Hamburg",
             (17, 2): "Berlin",
-            (14, 7): "München",
-            (16, 3): "Leipzig",
+            (13, 7): "München",
+            (14, 3): "Leipzig",
             (8, 4): "Frankfurt",
-            (5, 5): "Ludwigshafen/Mannheim",
+            (6, 5): "Ludwigshafen/Mannheim",
         }
         for (q, r), expected in snapshot.items():
             pos = board.get_position(q, r)
@@ -368,4 +368,4 @@ class TestBoardSnapshot:
 
     def test_snapshot_total_positions(self, loader: GameDataLoader) -> None:
         board = loader.load_board()
-        assert len(board.positions) == 131
+        assert len(board.positions) == 140

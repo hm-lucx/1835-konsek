@@ -296,6 +296,42 @@ h2 {
   outline: 2px solid var(--accent);
 }
 
+/* Tile catalogue: tiles drawn with real track geometry, grouped by colour. */
+.tile-tray__group {
+  margin-bottom: 10px;
+}
+
+.tile-tray__group h3 {
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  opacity: 0.75;
+}
+
+.tile-chip__count {
+  opacity: 0.6;
+}
+
+.tile-chip--graphic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: #e9e4cf;
+  padding: 3px;
+}
+
+.tile-chip__svg {
+  width: 42px;
+  height: 42px;
+  display: block;
+}
+
+.tile-chip__id {
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
 /* Train pool */
 .train-pool table {
   width: 100%;

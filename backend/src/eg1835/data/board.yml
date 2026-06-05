@@ -5,6 +5,19 @@ board:
   width: 22
   height: 8
   positions:
+    - q: 4
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 5
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 6
+      r: 0
+      tile_id: 0
+      terrain: "citywhite"
+      name: "Kiel"
     - q: 7
       r: 0
       tile_id: 0
@@ -24,8 +37,7 @@ board:
     - q: 11
       r: 0
       tile_id: 0
-      terrain: "citywhite"
-      name: "Kiel"
+      terrain: "water"
     - q: 12
       r: 0
       tile_id: 0
@@ -38,11 +50,30 @@ board:
       r: 0
       tile_id: 0
       terrain: "water"
-    - q: 21
+    - q: 15
       r: 0
       tile_id: 0
-      terrain: "offboard"
-      value: "20/20/40"
+      terrain: "water"
+    - q: 16
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 17
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 18
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 19
+      r: 0
+      tile_id: 0
+      terrain: "water"
+    - q: 20
+      r: 0
+      tile_id: 0
+      terrain: "water"
     - q: 3
       r: 1
       tile_id: 0
@@ -54,9 +85,7 @@ board:
     - q: 5
       r: 1
       tile_id: 0
-      terrain: "home"
-      name: "Oldenburg"
-      marker: "O"
+      terrain: "plain"
     - q: 6
       r: 1
       tile_id: 0
@@ -64,17 +93,19 @@ board:
     - q: 7
       r: 1
       tile_id: 0
-      terrain: "city"
-      name: "Bremen"
-      value: "50"
+      terrain: "plain"
     - q: 8
       r: 1
       tile_id: 0
-      terrain: "plain"
+      terrain: "home"
+      name: "Oldenburg"
+      marker: "O"
     - q: 9
       r: 1
       tile_id: 0
-      terrain: "plain"
+      terrain: "city"
+      name: "Bremen"
+      value: "50"
     - q: 10
       r: 1
       tile_id: 0
@@ -85,13 +116,13 @@ board:
     - q: 11
       r: 1
       tile_id: 0
-      terrain: "plain"
-    - q: 12
-      r: 1
-      tile_id: 0
       terrain: "home"
       name: "Schwerin"
       marker: "M"
+    - q: 12
+      r: 1
+      tile_id: 0
+      terrain: "plain"
     - q: 13
       r: 1
       tile_id: 0
@@ -123,7 +154,9 @@ board:
     - q: 20
       r: 1
       tile_id: 0
-      terrain: "water"
+      terrain: "offboard"
+      name: "Ostpreußen"
+      value: "20/30/40"
     - q: 3
       r: 2
       tile_id: 0
@@ -143,16 +176,17 @@ board:
     - q: 7
       r: 2
       tile_id: 0
-      terrain: "plain"
+      terrain: "citywhite"
+      name: "Hannover"
     - q: 8
       r: 2
       tile_id: 0
-      terrain: "citywhite"
-      name: "Hannover"
+      terrain: "plain"
     - q: 9
       r: 2
       tile_id: 0
-      terrain: "town"
+      terrain: "citybrown"
+      name: "Braunschweig"
     - q: 10
       r: 2
       tile_id: 0
@@ -160,18 +194,17 @@ board:
     - q: 11
       r: 2
       tile_id: 0
-      terrain: "citybrown"
-      name: "Braunschweig"
-    - q: 12
-      r: 2
-      tile_id: 0
       terrain: "plain"
-    - q: 13
+    - q: 12
       r: 2
       tile_id: 0
       terrain: "city"
       name: "Magdeburg"
       marker: "3"
+    - q: 13
+      r: 2
+      tile_id: 0
+      terrain: "plain"
     - q: 14
       r: 2
       tile_id: 0
@@ -237,16 +270,17 @@ board:
     - q: 8
       r: 3
       tile_id: 0
-      terrain: "plain"
+      terrain: "mountain"
+      value: "70"
     - q: 9
+      r: 3
+      tile_id: 0
+      terrain: "plain"
+    - q: 10
       r: 3
       tile_id: 0
       terrain: "mountain"
       value: "70"
-    - q: 10
-      r: 3
-      tile_id: 0
-      terrain: "plain"
     - q: 11
       r: 3
       tile_id: 0
@@ -263,7 +297,9 @@ board:
     - q: 14
       r: 3
       tile_id: 0
-      terrain: "town"
+      terrain: "home"
+      name: "Leipzig"
+      marker: "S"
     - q: 15
       r: 3
       tile_id: 0
@@ -271,9 +307,7 @@ board:
     - q: 16
       r: 3
       tile_id: 0
-      terrain: "home"
-      name: "Leipzig"
-      marker: "S"
+      terrain: "plain"
     - q: 17
       r: 3
       tile_id: 0
@@ -303,14 +337,14 @@ board:
     - q: 3
       r: 4
       tile_id: 0
+      terrain: "plain"
+    - q: 4
+      r: 4
+      tile_id: 0
       terrain: "city"
       name: "Köln"
       value: "50"
       marker: "Y"
-    - q: 4
-      r: 4
-      tile_id: 0
-      terrain: "plain"
     - q: 5
       r: 4
       tile_id: 0
@@ -318,14 +352,14 @@ board:
     - q: 6
       r: 4
       tile_id: 0
+      terrain: "plain"
+    - q: 7
+      r: 4
+      tile_id: 0
       terrain: "city"
       name: "Mainz/Wiesbaden"
       value: "50"
       marker: "XX"
-    - q: 7
-      r: 4
-      tile_id: 0
-      terrain: "plain"
     - q: 8
       r: 4
       tile_id: 0
@@ -336,12 +370,12 @@ board:
     - q: 9
       r: 4
       tile_id: 0
-      terrain: "plain"
+      terrain: "mountain"
+      value: "70"
     - q: 10
       r: 4
       tile_id: 0
-      terrain: "mountain"
-      value: "70"
+      terrain: "plain"
     - q: 11
       r: 4
       tile_id: 0
@@ -358,12 +392,12 @@ board:
     - q: 14
       r: 4
       tile_id: 0
-      terrain: "mountain"
-      value: "70"
+      terrain: "plain"
     - q: 15
       r: 4
       tile_id: 0
-      terrain: "plain"
+      terrain: "mountain"
+      value: "70"
     - q: 16
       r: 4
       tile_id: 0
@@ -383,12 +417,13 @@ board:
     - q: 20
       r: 4
       tile_id: 0
-      terrain: "plain"
+      terrain: "offboard"
+      name: "Oberschlesien"
+      value: "20/30/40"
     - q: 21
       r: 4
       tile_id: 0
-      terrain: "offboard"
-      value: "20/30/40"
+      terrain: "plain"
     - q: 2
       r: 5
       tile_id: 0
@@ -404,13 +439,13 @@ board:
     - q: 5
       r: 5
       tile_id: 0
-      terrain: "city"
-      name: "Ludwigshafen/Mannheim"
-      marker: "B"
+      terrain: "plain"
     - q: 6
       r: 5
       tile_id: 0
-      terrain: "plain"
+      terrain: "city"
+      name: "Ludwigshafen/Mannheim"
+      marker: "B"
     - q: 7
       r: 5
       tile_id: 0
@@ -418,8 +453,7 @@ board:
     - q: 8
       r: 5
       tile_id: 0
-      terrain: "mountain"
-      value: "70"
+      terrain: "plain"
     - q: 9
       r: 5
       tile_id: 0
@@ -446,12 +480,12 @@ board:
     - q: 14
       r: 5
       tile_id: 0
-      terrain: "plain"
+      terrain: "mountain"
+      value: "70"
     - q: 15
       r: 5
       tile_id: 0
-      terrain: "mountain"
-      value: "70"
+      terrain: "plain"
     - q: 16
       r: 5
       tile_id: 0
@@ -464,11 +498,16 @@ board:
       r: 5
       tile_id: 0
       terrain: "plain"
-    - q: 2
+    - q: 1
       r: 6
       tile_id: 0
       terrain: "offboard"
-      value: "50"
+      name: "Elsaß-Lothringen"
+      value: "50/60"
+    - q: 2
+      r: 6
+      tile_id: 0
+      terrain: "plain"
     - q: 3
       r: 6
       tile_id: 0
@@ -488,14 +527,14 @@ board:
     - q: 7
       r: 6
       tile_id: 0
-      terrain: "home"
-      name: "Stuttgart"
-      marker: "W"
+      terrain: "mountain"
+      value: "70"
     - q: 8
       r: 6
       tile_id: 0
-      terrain: "mountain"
-      value: "70"
+      terrain: "home"
+      name: "Stuttgart"
+      marker: "W"
     - q: 9
       r: 6
       tile_id: 0
@@ -503,17 +542,16 @@ board:
     - q: 10
       r: 6
       tile_id: 0
-      terrain: "citywhite"
-      name: "Augsburg"
+      terrain: "plain"
     - q: 11
       r: 6
       tile_id: 0
-      terrain: "plain"
+      terrain: "citywhite"
+      name: "Augsburg"
     - q: 12
       r: 6
       tile_id: 0
-      terrain: "mountain"
-      value: "70"
+      terrain: "plain"
     - q: 13
       r: 6
       tile_id: 0
@@ -537,12 +575,12 @@ board:
     - q: 3
       r: 7
       tile_id: 0
-      terrain: "citywhite"
-      name: "Freiburg"
+      terrain: "plain"
     - q: 4
       r: 7
       tile_id: 0
-      terrain: "plain"
+      terrain: "citywhite"
+      name: "Freiburg"
     - q: 5
       r: 7
       tile_id: 0
@@ -579,13 +617,13 @@ board:
     - q: 13
       r: 7
       tile_id: 0
-      terrain: "plain"
-    - q: 14
-      r: 7
-      tile_id: 0
       terrain: "home"
       name: "München"
       marker: "Y"
+    - q: 14
+      r: 7
+      tile_id: 0
+      terrain: "plain"
     - q: 15
       r: 7
       tile_id: 0

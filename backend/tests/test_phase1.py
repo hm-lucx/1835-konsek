@@ -16,7 +16,8 @@ class TestGameDataLoading:
     def test_tiles_load(self, loader: GameDataLoader) -> None:
         """Test that tiles load successfully."""
         tiles = loader.load_tiles()
-        assert len(tiles) == 147
+        assert len(tiles) == 63  # distinct tile types in 1835
+        assert sum(t.count for t in tiles) == 147  # total copies in the supply
         assert all(t.color in ["yellow", "green", "brown"] for t in tiles)
         assert all(t.id > 0 for t in tiles)
 

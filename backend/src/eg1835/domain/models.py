@@ -11,6 +11,9 @@ class Tile(BaseModel):
     color: str
     name: str
     cities: int
+    value: int = 0  # revenue of the tile's stops (0 = plain track)
+    count: int = 1  # number of copies in the 1835 supply
+    label: str = ""  # printed label (Y / XX / B / HH …)
 
 
 class Locomotive(BaseModel):
