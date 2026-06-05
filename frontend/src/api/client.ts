@@ -10,7 +10,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   })
   if (!response.ok) {
-    const detail = await response.text()
+    // FastAPI errors come back as {"detail": "..."}; unwrap it for a clean
+    // human-readable message (falls back to the raw body).
+    const body = await response.text()
+    let detail = body
+    try {
+      const parsed = JSON.parse(body) as { detail?: unknown }
+      if (typeof parsed.detail === 'string') detail = parsed.detail
+    } catch {
+      /* not JSON — keep the raw body */
+    }
     throw new ApiError(response.status, detail)
   }
   if (response.status === 204) {

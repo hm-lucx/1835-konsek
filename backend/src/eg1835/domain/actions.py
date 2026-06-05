@@ -84,6 +84,7 @@ from .result import Err, Ok
 from .share_price import step_down, step_up
 from .start_packet import (
     START_PACKET_ITEMS,
+    VORPREUSSISCHE_CAPITAL,
     buyable_item_ids,
     remove_item,
 )
@@ -677,10 +678,18 @@ class BuyStartItem:
             self.player_id: state.cash_per_player[self.player_id] - item.cost,
         }
 
-        # Add bonus Vorpreußische shares to player.
+        # Add bonus Vorpreußische shares to player and, on first delivery, fund
+        # the company's treasury with its printed Betriebskapital (rule 3.2).
+        # The bank pays the capital (mirrors the AG-launch funding, rule 2.7.5).
         player_sh = dict(state.player_shares.get(self.player_id, {}))
+        new_company_cash = dict(state.company_cash)
+        capital_paid = 0
         for cid in item.bonus_shares:
             player_sh[cid] = player_sh.get(cid, 0) + 10
+            if cid not in new_company_cash:
+                cap = VORPREUSSISCHE_CAPITAL.get(cid, 0)
+                new_company_cash[cid] = cap
+                capital_paid += cap
         new_player_shares = {**state.player_shares, self.player_id: player_sh}
 
         # Certificate count: 1 for private + 1 per bonus share.
@@ -708,24 +717,27 @@ class BuyStartItem:
         new_state = dataclasses.replace(
             state,
             cash_per_player=new_cash,
-            bank_balance=state.bank_balance + item.cost,
+            # Bank takes the item cost and pays out any Vorpreußische capital.
+            bank_balance=state.bank_balance + item.cost - capital_paid,
             start_packet_rows=new_rows,
             player_shares=new_player_shares,
             player_certificates=new_certs,
             private_owners=new_private_owners,
+            company_cash=new_company_cash,
             unsold_shares=new_unsold,
             share_prices=new_prices,
             company_status=new_status,
         )
 
-        # Packet empty → transition to OR; otherwise just advance to next player.
+        # Packet empty → the AR continues with the AG shares now on offer (rule
+        # 2.5.2); the stock round ends (→ OR) only once all players pass (2.3).
         if packet_empty:
             return dataclasses.replace(
                 new_state,
                 current_player_index=(
                     (new_state.current_player_index + 1) % len(new_state.players)
                 ),
-                game_loop_phase=GameLoopPhase.OR,
+                game_loop_phase=GameLoopPhase.AR,
             )
         return dataclasses.replace(
             new_state,

@@ -12,14 +12,15 @@ from ``board.yml`` with empty station lists.
 """
 from __future__ import annotations
 
+import dataclasses
 from functools import lru_cache
 from typing import Any
 
-from ..domain.fsm import TRAIN_SPECS
+from ..domain.fsm import TRAIN_ROSTER, TRAIN_SPECS, TRAIN_TIER
 from ..domain.game_state import GameState
 from ..domain.loader import GameDataLoader
 from ..domain.or_flow import current_actor
-from ..domain.serialization import snake_name
+from ..domain.serialization import resolve_action_class, snake_name
 from ..domain.start_packet import START_PACKET_ITEMS, buyable_item_ids
 
 # Player-share certificate denomination (10 % per regular certificate).
@@ -211,9 +212,56 @@ _OR_SUBPHASE_TYPES: dict[str, tuple[str, ...]] = {
 }
 
 
+# Buy-from-company needs a seller + a negotiated price (rule 5.5.4.3); there is
+# no negotiation UI yet, so we don't enumerate it (it would always fail to
+# deserialise).  The bank / mandatory purchases cover the common case.
+_OR_ACTIONS_SKIP = frozenset({"BuyTrainFromCompany"})
+
+
+@lru_cache(maxsize=None)
+def _action_field_names(action_type: str) -> frozenset[str]:
+    """Names of the dataclass fields an action accepts (empty if unknown)."""
+    cls = resolve_action_class(action_type)
+    if cls is None or not dataclasses.is_dataclass(cls):
+        return frozenset()
+    return frozenset(f.name for f in dataclasses.fields(cls))
+
+
+def _next_available_train(state: GameState) -> str | None:
+    """Cheapest locomotive still in the bank, in mandatory purchase order (5.5.4).
+
+    Trains must be bought ascending, so the next buyable train is always the
+    first roster entry whose tier still has stock.
+    """
+    for spec in TRAIN_ROSTER:
+        if state.available_trains.get(TRAIN_TIER[spec.train_id], 0) > 0:
+            return spec.train_id
+    return None
+
+
 def _or_actions(state: GameState) -> list[dict[str, Any]]:
+    """Concrete OR actions, with the parameters each needs pre-filled.
+
+    The OR-turn actions operate on the active company and the bank's cheapest
+    locomotive; the enumeration supplies ``company_id`` / ``train`` so the
+    action can be reconstructed and executed from the bare button click.
+    """
     sub = state.or_phase.value if state.or_phase is not None else "done"
-    return [_action(name) for name in _OR_SUBPHASE_TYPES.get(sub, ())]
+    next_train = _next_available_train(state)
+    actions: list[dict[str, Any]] = []
+    for name in _OR_SUBPHASE_TYPES.get(sub, ()):
+        if name in _OR_ACTIONS_SKIP:
+            continue
+        field_names = _action_field_names(name)
+        fields: dict[str, Any] = {}
+        if "company_id" in field_names and state.active_company_id is not None:
+            fields["company_id"] = state.active_company_id
+        if "train" in field_names:
+            if next_train is None:
+                continue  # nothing left to buy → omit this purchase action
+            fields["train"] = next_train
+        actions.append(_action(name, **fields))
+    return actions
 
 
 def legal_actions(state: GameState, player_id: str) -> dict[str, Any]:

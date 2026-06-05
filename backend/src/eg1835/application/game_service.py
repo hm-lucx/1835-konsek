@@ -80,7 +80,7 @@ class GameService:
         async with self._session_factory() as session, session.begin():
             game = await self._store.create_game(session, num_players)
             if creator_email is not None:
-                user = await self._store.create_user(session, creator_email)
+                user = await self._store.get_or_create_user(session, creator_email)
                 await self._store.add_player(session, game.id, user.id, seat=0)
             return game.id
 
@@ -89,7 +89,7 @@ class GameService:
             game = await self._store.get_game(session, game_id)
             if game is None:
                 raise GameNotFoundError(f"Game {game_id} not found")
-            user = await self._store.create_user(session, user_email)
+            user = await self._store.get_or_create_user(session, user_email)
             try:
                 await self._store.add_player(session, game_id, user.id, seat)
             except IntegrityError as exc:  # seat already taken

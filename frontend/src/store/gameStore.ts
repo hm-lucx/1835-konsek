@@ -14,9 +14,14 @@ interface GameStore {
   legalActions: LegalActionsResponse | null
   socket: WebSocket | null
   error: string | null
+  // A rejected/illegal action, shown as a dismissable modal (separate from the
+  // connection-level `error` banner).
+  actionError: string | null
 
   connect: (gameId: number, playerId: string) => Promise<void>
   disconnect: () => void
+  setError: (error: string | null) => void
+  dismissActionError: () => void
   refresh: () => Promise<void>
   submit: (action: Action) => Promise<void>
 }
@@ -28,6 +33,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   legalActions: null,
   socket: null,
   error: null,
+  actionError: null,
 
   connect: async (gameId, playerId) => {
     get().disconnect()
@@ -38,6 +44,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })
     set({ socket })
   },
+
+  setError: (error) => set({ error }),
+
+  dismissActionError: () => set({ actionError: null }),
 
   disconnect: () => {
     const { socket } = get()
@@ -72,7 +82,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // acting client updates without waiting for the round-trip frame.
       await get().refresh()
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err) })
+      // A rejected move surfaces as a modal explaining why and listing the
+      // moves that *are* allowed (refresh keeps `legalActions` current).
+      await get().refresh()
+      set({ actionError: err instanceof Error ? err.message : String(err) })
     }
   },
 }))

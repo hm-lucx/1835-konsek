@@ -12,7 +12,10 @@
 }
 
 .app {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -22,13 +25,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.25rem;
+  padding: 0.4rem 1rem;
   background: var(--panel);
   border-bottom: 1px solid #000;
+  flex: 0 0 auto;
 }
 
 .app__header h1 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   margin: 0;
 }
 
@@ -48,18 +52,66 @@
   color: var(--muted);
 }
 
-/* Single column on phones; two columns + bottom action bar on tablet (≥768px). */
+/* Guidance banner */
+.phase-guide {
+  flex: 0 0 auto;
+  background: linear-gradient(90deg, #2b3d52, #243140);
+  border-bottom: 1px solid #000;
+  padding: 0.4rem 1rem;
+}
+
+.phase-guide__main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.phase-guide__badge {
+  background: var(--accent);
+  color: #06121f;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.phase-guide__title {
+  font-size: 0.95rem;
+}
+
+.phase-guide__actor {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-guide__body {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+/* Fills the viewport below header/guide; map left, side panel right, actions
+   docked at the bottom. Everything stays within one screen. */
 .app__layout {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas: 'map' 'side' 'footer';
-  gap: 0.75rem;
-  padding: 0.75rem;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .app__layout {
-    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 24vw, 360px);
+    grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas:
       'map side'
       'footer footer';
@@ -70,47 +122,65 @@
   grid-area: map;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .app__side {
   grid-area: side;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  max-height: 82vh;
+  gap: 0.5rem;
+  min-height: 0;
   overflow-y: auto;
 }
 
 .app__footer {
   grid-area: footer;
-  position: sticky;
-  bottom: 0;
 }
 
 section,
 .app__side > div {
   background: var(--panel);
   border-radius: 8px;
-  padding: 0.75rem;
+  padding: 0.6rem;
 }
 
 h2 {
-  font-size: 0.95rem;
-  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  margin: 0 0 0.4rem;
   color: var(--accent);
 }
 
-/* Hex map */
+/* Hex map — flex-fills the map column and scales (preserveAspectRatio) so the
+   whole board is always visible without page scroll. */
 .hex-map {
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
+  display: block;
   background: #11181f;
   border-radius: 8px;
 }
 
 .hex-label {
-  font-size: 8px;
+  font-size: 6px;
+  fill: #1a1a1a;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.hex-marker {
+  font-size: 7px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.hex-value {
+  font-size: 6px;
+  font-weight: 700;
   fill: #11181f;
   pointer-events: none;
 }
@@ -119,16 +189,26 @@ h2 {
   cursor: pointer;
 }
 
-/* Stock market */
+/* Stock market — single horizontal track that scrolls, to save vertical space. */
+.stock-market {
+  flex: 0 0 auto;
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+}
+
 .stock-track {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .stock-field {
-  width: 46px;
-  min-height: 56px;
+  flex: 0 0 auto;
+  width: 40px;
+  min-height: 48px;
   background: var(--panel-light);
   border: 1px solid #0c1218;
   border-radius: 4px;
@@ -264,8 +344,98 @@ h2 {
   outline: 3px solid #ffd84a;
 }
 
+/* Highlight the single non-pass choice as the obvious next step. */
+.action-btn--suggested {
+  box-shadow: 0 0 0 2px #ffd84a, 0 0 12px rgba(255, 216, 74, 0.5);
+}
+
+/* Pass is always available but secondary — render it muted. */
+.action-btn--ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid #3a4a5c;
+}
+
 .action-bar__empty {
   color: var(--muted);
+}
+
+/* Illegal-action modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--panel);
+  border: 1px solid #000;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  max-width: 440px;
+  width: calc(100% - 2rem);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal__title {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+  color: #ffd7d7;
+}
+
+.modal__message {
+  margin: 0 0 0.9rem;
+  line-height: 1.4;
+}
+
+.modal__rule {
+  display: inline-block;
+  background: #5a1f1f;
+  color: #ffd7d7;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.modal__options {
+  background: var(--panel-light);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.modal__options-label {
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.modal__options ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+}
+
+.modal__options li {
+  margin: 2px 0;
+}
+
+.modal__close {
+  background: var(--accent);
+  color: #06121f;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
 }
 
 /* Game log */

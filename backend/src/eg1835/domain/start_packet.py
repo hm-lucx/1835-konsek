@@ -25,6 +25,19 @@ START_PACKET_ITEMS: dict[str, StartPacketItem] = {
     "PF": StartPacketItem("PF", "Pfalzbahn",         140, ("BP",)),
 }
 
+# Vorpreußische Betriebskapital (rule 3.2 table).  A Vorpreußische company has
+# no share price; its printed price becomes its starting treasury when it is
+# delivered (here as the bonus attached to a start-packet item).
+VORPREUSSISCHE_CAPITAL: dict[str, int] = {
+    "BM": 80,   # Bergisch-Märkische (Düsseldorf)
+    "BP": 170,  # Berlin-Potsdamer (Berlin)
+    "MD": 80,   # Magdeburger (Magdeburg)
+    "KM": 160,  # Köln-Mindener (Dortmund)
+    "BS": 80,   # Berlin-Stettiner (Berlin)
+    "AK": 80,   # Altona-Kiel (Hamburg)
+}
+
+
 # Row 0 is the "top" (cheapest) row, row 2 is the last.
 INITIAL_START_PACKET_ROWS: tuple[tuple[str, ...], ...] = (
     ("NF", "LD"),

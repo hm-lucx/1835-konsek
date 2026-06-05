@@ -136,8 +136,9 @@ class TestStartPacketReplay:
         assert state.share_prices["SA"] == 88   # SA par = 88 M (rule 3.3 table)
         assert state.unsold_shares["BY"] == 100
         assert state.unsold_shares["SA"] == 100
-        # Game transitions to OR.
-        assert state.game_loop_phase == GameLoopPhase.OR
+        # The stock round continues so the new AG shares can be traded (rule
+        # 2.5.2); it ends (→ OR) only once all players pass.
+        assert state.game_loop_phase == GameLoopPhase.AR
 
     def test_certificate_count_after_start_packet(self) -> None:
         """Each buyer gets 1 private + 1 bonus = 2 certs per purchase."""
